@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: theme("colors.surface");
+  color: theme("colors.ink");
+  font-family: theme("fontFamily.sans");
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 终端风：可选的扫描线/等宽强调由组件按需使用 */
+.mono {
+  font-family: theme("fontFamily.mono");
+}
+
+/* 计划页：终端投影卡片 + 时间轴虚线（参考设计稿） */
+.terminal-shadow {
+  box-shadow: 4px 4px 0px rgba(44, 44, 44, 0.05);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.terminal-shadow:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(44, 44, 44, 0.1);
+}
+.timeline-dotted {
+  background-image: radial-gradient(#2c2c2c 1px, transparent 1px);
+  background-size: 1px 12px;
+  background-repeat: repeat-y;
+  background-position: center;
+}
+
+/* 会话页：细窄终端滚动条 */
+.terminal-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.terminal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: #e5e2d9;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
