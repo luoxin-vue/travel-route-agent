@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
+      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "路线规划系统",
         short_name: "路线规划",

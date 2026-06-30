@@ -1,8 +1,10 @@
 """FastAPI 入口。"""
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.routers import chat, image
@@ -32,3 +34,11 @@ app.include_router(image.router)
 @app.get("/health")
 def health():
     return {"status": "ok", "model": settings.llm_model}
+
+
+# 若前端已构建（frontend/dist 存在），由后端同源托管：
+# 部署最省事——单端口 = API + 前端 + 图片代理 + SSE，天然满足 PWA 同源/HTTPS。
+# 必须放在所有 /api 路由之后挂载，避免 "/" 抢占接口路由。
+_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if _DIST.is_dir():
+    app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="frontend")
