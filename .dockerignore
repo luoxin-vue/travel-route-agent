@@ -1,0 +1,24 @@
+# 只拷贝构建所需，避免把本机产物 / 机密带进镜像
+**/node_modules
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+frontend/dist
+frontend/dev-dist
+**/*.tsbuildinfo
+
+# 机密不进镜像（运行时用 compose volume 挂载 backend/.env）
+backend/.env
+frontend/.env
+.env
+
+# 杂项
+.git
+.gitignore
+*.log
+.DS_Store
+.vscode
+DEPLOY.md
+route_system.md
+DESIGN.md

@@ -1,0 +1,26 @@
+# ROUTE_SYSTEM 部署编排：app（前端+后端同源）+ cloudflared（内网穿透到 coderlx.dpdns.org）
+# 用法见 DEPLOY.md。变量来自同目录 .env（见 .env.deploy.example）。
+services:
+  app:
+    build:
+      context: .
+      args:
+        # 前端构建期注入高德 JS key（打进 bundle）。
+        VITE_AMAP_JS_KEY: ${VITE_AMAP_JS_KEY}
+        VITE_AMAP_JS_SECURITY_CODE: ${VITE_AMAP_JS_SECURITY_CODE}
+    restart: unless-stopped
+    volumes:
+      # 后端机密（LLM/高德 Web key 等）运行时挂载，不进镜像。
+      - ./backend/.env:/app/backend/.env:ro
+    expose:
+      - "8000"   # 仅暴露给 compose 内网（cloudflared 访问），不开放到公网。
+
+  cloudflared:
+    # 固定版本，避免镜像加速器缓存到很旧的 latest（老版无 token 隧道功能）。
+    image: cloudflare/cloudflared:2024.12.2
+    restart: unless-stopped
+    # 镜像 entrypoint 已是 ["cloudflared","--no-autoupdate"]，命令只需 tunnel run。
+    # token 作为命令行参数直传；${TUNNEL_TOKEN} 由同目录 .env 提供。
+    command: tunnel run --token ${TUNNEL_TOKEN}
+    depends_on:
+      - app

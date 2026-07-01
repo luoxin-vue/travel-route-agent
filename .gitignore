@@ -4,6 +4,8 @@ __pycache__/
 .venv/
 venv/
 backend/.env
+# 根目录 compose 变量文件（含 tunnel token / 高德 JS key）
+/.env
 
 # Node
 node_modules/
