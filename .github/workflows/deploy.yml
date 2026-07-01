@@ -1,12 +1,13 @@
 name: Deploy to ECS
 
 # push 到 main 自动部署；也可在 Actions 页手动点 Run workflow。
+# 思路：国内 ECS 连不上 GitHub，故由 GitHub runner(海外) checkout 代码后
+# 通过 SSH/rsync 推送到 ECS，再在 ECS 上重建容器。ECS 无需访问 GitHub。
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# 避免多次 push 并发部署互相打架。
 concurrency:
   group: deploy-ecs
   cancel-in-progress: false
@@ -15,18 +16,35 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          command_timeout: 20m
-          script: |
-            set -e
-            cd /root/map_project
-            git fetch --all --prune
-            git reset --hard origin/main
-            docker compose up -d --build
-            docker image prune -f
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Trust ECS host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Ensure rsync on ECS
+        run: |
+          ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            'command -v rsync >/dev/null || (apt-get update -q && apt-get install -y rsync)'
+
+      - name: Sync code to ECS (.env 等被排除，不会被覆盖)
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='.env' --exclude='backend/.env' --exclude='frontend/.env' \
+            --exclude='node_modules' --exclude='.venv' \
+            --exclude='dist' --exclude='dev-dist' \
+            -e "ssh -p ${{ secrets.SSH_PORT }}" \
+            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/root/map_project/"
+
+      - name: Build & restart on ECS
+        run: |
+          ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            'cd /root/map_project && docker compose up -d --build && docker image prune -f'
