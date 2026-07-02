@@ -8,6 +8,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      // 手动在 main.tsx 里调用 registerSW（带定时轮询新版本），不用插件自动注入的注册脚本。
+      injectRegister: false,
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "路线规划系统",

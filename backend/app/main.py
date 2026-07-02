@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -41,4 +41,16 @@ def health():
 # 必须放在所有 /api 路由之后挂载，避免 "/" 抢占接口路由。
 _DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 if _DIST.is_dir():
+    # index.html/sw.js/manifest 不走强缓存，确保新版本能被 SW 更新检测及时发现；
+    # Vite 构建产物文件名带 hash，可放心长期强缓存。
+    @app.middleware("http")
+    async def add_static_cache_headers(request: Request, call_next):
+        response = await call_next(request)
+        path = request.url.path
+        if path.startswith("/assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif not path.startswith("/api"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
     app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="frontend")
