@@ -18,8 +18,7 @@ export function TelemetryBar() {
         <span className={`h-1.5 w-1.5 rounded-full ${streaming ? "bg-primary-container animate-pulse" : "bg-teal"}`} />
         {status}
       </span>
-      <span>CPU空闲 98%</span>
-      <span>延迟 42ms</span>
+      <span>deepseek-v4-flash</span>
       <span className="ml-auto">旅行规划师</span>
     </div>
   );

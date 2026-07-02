@@ -10,7 +10,7 @@ import { LogDivider } from "./LogDivider";
 
 /** 空状态的快捷指令（点击直接发送）。 */
 const PRESETS = [
-  { label: "新行程: 上海", prompt: "帮我规划上海周末2日游，2-3个核心景点" },
+  { label: "上海周末2日游", prompt: "帮我规划上海周末2日游，2-3个核心景点" },
   { label: "成都美食2日", prompt: "帮我规划成都2日游，重点美食和熊猫基地" },
   { label: "杭州西湖一日", prompt: "帮我规划杭州西湖一日游" },
 ];
@@ -99,7 +99,7 @@ export function ChatView() {
                 旅行规划师 已就绪
               </h2>
               <p className="mb-4 font-mono text-code-md leading-relaxed text-on-surface">
-                正在建立与高德地图服务的连接…
+                已建立与高德地图服务的连接
                 <br />
                 准备为你合成行程。想先去哪里？
               </p>
@@ -198,7 +198,7 @@ export function ChatView() {
             </button>
           </div>
           <div className="mt-2 flex justify-between px-1 font-mono text-label-sm uppercase text-on-surface-variant/50">
-            <span>CPU_空闲 98% // 延迟 42ms</span>
+            <span>deepseek-v4-flash</span>
             <span className="flex items-center gap-1.5">
               {streaming && (
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-container" />
