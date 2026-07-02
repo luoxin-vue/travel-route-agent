@@ -22,10 +22,11 @@ const updateServiceWorker = registerSW({
       if (resp.status === 200) await registration.update();
     };
     setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS);
-    // 从后台切回前台时（如从主屏重新打开 PWA）立即探测一次，避免久等定时器。
+    // 切回本标签页/窗口时（含从主屏重新打开 PWA）立即探测一次，避免久等定时器。
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") checkForUpdate();
     });
+    window.addEventListener("focus", checkForUpdate);
   },
 });
 void updateServiceWorker;
