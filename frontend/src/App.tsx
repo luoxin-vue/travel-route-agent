@@ -4,7 +4,7 @@ import { BottomNavBar } from "./components/BottomNavBar";
 import { ChatView } from "./features/chat/ChatView";
 import { PlanView } from "./features/plan/PlanView";
 import { MapView } from "./features/map/MapView";
-import { AccountView } from "./features/account/AccountView";
+import { LibraryView } from "./features/library/LibraryView";
 
 export default function App() {
   const tab = useAppStore((s) => s.tab);
@@ -16,7 +16,7 @@ export default function App() {
         {tab === "chat" && <ChatView />}
         {tab === "plan" && <PlanView />}
         {tab === "map" && <MapView />}
-        {tab === "account" && <AccountView />}
+        {tab === "library" && <LibraryView />}
       </main>
       <BottomNavBar />
     </div>

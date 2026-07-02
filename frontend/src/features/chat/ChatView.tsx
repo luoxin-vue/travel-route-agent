@@ -28,6 +28,7 @@ export function ChatView() {
     pushStep,
     resolveStep,
     setItinerary,
+    saveRoute,
     setTelemetry,
     setStreaming,
     setTab,
@@ -62,6 +63,7 @@ export function ChatView() {
           }
         },
         onItinerary: (it) => {
+          saveRoute(it);
           setItinerary(it);
           setTab("plan");
         },
