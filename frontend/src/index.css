@@ -10,6 +10,8 @@ html,
 body,
 #root {
   height: 100%;
+  touch-action: pan-x pan-y; /* 仅允许滚动，禁止双指缩放等手势 */
+  -webkit-text-size-adjust: 100%; /* 防止横屏自动放大字体 */
 }
 
 body {
