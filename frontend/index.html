@@ -18,6 +18,28 @@
       rel="stylesheet"
     />
     <title>路线规划系统</title>
+    <!-- 禁止手势缩放 (iOS Safari 专用) -->
+    <script>
+      // 禁用双指缩放手势
+      document.addEventListener('gesturestart', function (event) {
+        event.preventDefault();
+      });
+      // 禁用双指触摸及滑动缩放
+      document.addEventListener('touchstart', function(event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+      // 禁用双击缩放
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function(event) {
+        let now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+    </script>
   </head>
   <body>
     <div id="root"></div>
