@@ -13,10 +13,16 @@ export default function App() {
     <div className="mx-auto flex h-full max-w-2xl flex-col bg-surface">
       <TopAppBar />
       <main className="min-h-0 flex-1">
-        {tab === "chat" && <ChatView />}
-        {tab === "plan" && <PlanView />}
+        <div className={tab === "chat" ? "h-full" : "hidden"}>
+          <ChatView />
+        </div>
+        <div className={tab === "plan" ? "h-full" : "hidden"}>
+          <PlanView />
+        </div>
         {tab === "map" && <MapView />}
-        {tab === "library" && <LibraryView />}
+        <div className={tab === "library" ? "h-full" : "hidden"}>
+          <LibraryView />
+        </div>
       </main>
       <BottomNavBar />
     </div>
