@@ -58,8 +58,8 @@ async def chat(req: ChatRequest):
                     if reasoning:
                         yield _sse("thinking", {"text": reasoning})
                     
-                    # ponytail: filter out tool calls/arguments from being emitted as conversational text tokens.
-                    # This prevents the frontend from printing raw tool calls/JSON on the screen when using OpenAI-compatible models.
+                    # ponytail: 过滤掉工具调用/参数，避免其被当作对话文本 token 推送给前端。
+                    # 这样可以防止在使用 OpenAI 兼容接口的模型时，前端直接把工具调用的 JSON 源码打印在屏幕上。
                     if (
                         getattr(chunk, "tool_calls", None)
                         or getattr(chunk, "tool_call_chunks", None)
