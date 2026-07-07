@@ -40,7 +40,7 @@ export function PlanSummary({ itinerary }: { itinerary: Itinerary }) {
         <h1 className="mb-4 text-2xl font-semibold leading-snug text-ink">{itinerary.title}</h1>
       )}
 
-      <div className="grid grid-cols-3 gap-4 border-b-4 border-primary-container pb-4">
+      <div className="grid grid-cols-3 gap-4 border-b-4 border-primary pb-4">
         <Stat label="总天数" value={`${itinerary.days} 天`} />
         <Stat label="途经站点" value={`${stops}`} />
         <Stat label="交通路段" value={`${legs}`} />

@@ -96,8 +96,8 @@ export function ChatView() {
           <div className="flex flex-col gap-2">
             <LogDivider label="系统初始化" side="left" />
             <div className="max-w-2xl rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-              <h2 className="mb-2 flex items-center gap-2 font-mono text-code-md text-primary-container">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-primary-container" />
+              <h2 className="mb-2 flex items-center gap-2 font-mono text-code-md text-primary">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
                 旅行规划师 已就绪
               </h2>
               <p className="mb-4 font-mono text-code-md leading-relaxed text-on-surface">
@@ -110,7 +110,7 @@ export function ChatView() {
                   <button
                     key={p.label}
                     onClick={() => send(p.prompt)}
-                    className="border border-transparent bg-secondary-container px-4 py-2 font-mono text-label-sm text-on-secondary-container transition-all hover:border-secondary"
+                    className="border border-transparent bg-secondary-container px-4 py-2 font-mono text-label-sm text-ink transition-all hover:border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1"
                   >
                     {p.label}
                   </button>
@@ -144,7 +144,7 @@ export function ChatView() {
                   !m.content &&
                   (m.steps?.length ?? 0) === 0 && (
                     <div className="flex items-center gap-2 font-mono text-label-sm text-on-surface-variant">
-                      <Loader2 size={12} className="animate-spin text-primary-container" />
+                      <Loader2 size={12} className="animate-spin text-primary" />
                       正在思考…
                     </div>
                   )}
@@ -159,13 +159,13 @@ export function ChatView() {
                     <span className="font-mono text-label-sm text-on-surface-variant">建议操作:</span>
                     <button
                       onClick={() => setTab("plan")}
-                      className="flex items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface"
+                      className="flex items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     >
                       <ListTree size={14} /> 查看计划
                     </button>
                     <button
                       onClick={() => setTab("map")}
-                      className="flex items-center gap-1 border border-outline px-3 py-1.5 font-mono text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-high"
+                      className="flex items-center gap-1 border border-outline px-3 py-1.5 font-mono text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     >
                       <Map size={14} /> 渲染地图
                     </button>
@@ -180,20 +180,21 @@ export function ChatView() {
       {/* 终端风输入区 + 遥测 */}
       <div className="border-t border-outline-variant bg-surface px-4 pb-3 pt-3">
         <div className="mx-auto max-w-3xl">
-          <div className="flex items-center rounded border border-outline-variant bg-surface-container-lowest transition-colors focus-within:border-primary-container">
-            <span className="animate-pulse px-4 font-mono font-bold text-primary-container">&gt;</span>
+          <div className="flex items-center rounded border border-outline-variant bg-surface-container-lowest transition-colors focus-within:border-primary">
+            <span className="animate-pulse px-4 font-mono font-bold text-primary">&gt;</span>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               disabled={streaming}
               placeholder="接下来去哪？"
+              aria-label="输入旅行意图或下一站"
               className="flex-1 border-none bg-transparent py-3 font-mono text-code-md text-ink outline-none placeholder:text-on-surface-variant/40"
             />
             <button
               onClick={() => send()}
               disabled={streaming || !input.trim()}
-              className="p-3 text-on-surface-variant transition-colors hover:text-primary-container disabled:opacity-40"
+              className="p-3 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-40"
               aria-label="发送"
             >
               <Send size={18} />

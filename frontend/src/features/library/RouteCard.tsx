@@ -46,14 +46,14 @@ export function RouteCard({ route }: { route: SavedRoute }) {
           <h3 className="min-w-0 flex-1 truncate text-headline-md text-ink">{itinerary.title}</h3>
           <button
             onClick={() => toggleRouteFavorite(route.id)}
-            className="shrink-0 p-0.5 transition-colors"
+            className="shrink-0 p-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
             aria-label={route.favorite ? "取消收藏" : "收藏"}
           >
             <Bookmark
               size={18}
               className={
                 route.favorite
-                  ? "fill-primary-container text-primary-container"
+                  ? "fill-primary text-primary"
                   : "text-on-surface-variant hover:text-ink"
               }
             />
@@ -64,7 +64,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
                 deleteRoute(route.id);
               }
             }}
-            className="shrink-0 p-0.5 text-on-surface-variant transition-colors hover:text-error"
+            className="shrink-0 p-0.5 text-on-surface-variant transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded"
             aria-label="删除路线"
           >
             <Trash2 size={16} />
@@ -73,11 +73,12 @@ export function RouteCard({ route }: { route: SavedRoute }) {
 
         <button
           onClick={() => toggleRouteStatus(route.id)}
-          className={`mt-2 self-start rounded-full px-2 py-0.5 font-mono text-label-sm uppercase transition-colors ${
+          className={`mt-2 self-start rounded-full px-2 py-0.5 font-mono text-label-sm uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
             completed
-              ? "bg-teal/10 text-teal"
-              : "bg-primary-container/10 text-primary-container"
+              ? "bg-teal/10 text-secondary"
+              : "bg-primary/10 text-primary"
           }`}
+          aria-label={completed ? "标记为未完成" : "标记为已完成"}
         >
           {completed ? "已完成 ✓" : "已计划"}
         </button>
@@ -96,7 +97,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
               setItinerary(itinerary);
               setTab("plan");
             }}
-            className="flex shrink-0 items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface"
+            className="flex shrink-0 items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
           >
             查看详情 <ArrowRight size={14} />
           </button>

@@ -21,8 +21,9 @@ export function BottomNavBar() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex flex-1 flex-col items-center gap-1 py-2 transition-colors ${
-              active ? "text-primary-container" : "text-on-surface-variant hover:text-ink"
+            aria-current={active ? "page" : undefined}
+            className={`flex flex-1 flex-col items-center gap-1 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+              active ? "text-primary" : "text-on-surface-variant hover:text-ink"
             }`}
           >
             <Icon size={20} />

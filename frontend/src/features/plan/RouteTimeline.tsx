@@ -63,7 +63,7 @@ function protocolIcon(protocol?: string | null): LucideIcon {
 /** CLI 风动作按钮（MVP 占位）。 */
 function ActionBtn({ children }: { children: string }) {
   return (
-    <button className="border border-outline px-2 py-1 font-mono text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-highest">
+    <button className="border border-outline px-2 py-1 font-mono text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-highest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
       [{children}]
     </button>
   );
@@ -96,31 +96,33 @@ function StopCard({ node }: { node: ItineraryNode }) {
       <span
         className={`absolute left-0 top-2 z-10 h-2 w-2 rounded-full outline outline-4 outline-surface ${
           overnight
-            ? "bg-ink shadow-[0_0_0_2px_#d97757]"
+            ? "bg-ink shadow-[0_0_0_2px_#99462a]"
             : "border-2 border-ink bg-surface"
         }`}
       />
       <div
         className={`rounded-lg border border-outline-variant bg-surface-container-lowest p-5 terminal-shadow ${
-          overnight ? "border-t-4 border-t-primary-container" : ""
+          overnight ? "border-t-4 border-t-primary" : ""
         }`}
       >
-        {/* 头部：时间 + 名称 + 动作 */}
-        <div className="mb-4 flex items-start justify-between gap-2">
-          <div>
-            {(node.start_time || node.end_time) && (
-              <span className="font-mono text-code-md font-bold text-primary-container">
-                {node.start_time ?? ""}
-                {node.end_time ? `–${node.end_time}` : ""}
-              </span>
-            )}
-            <h3 className="mt-1 text-headline-md text-ink">{node.name}</h3>
-          </div>
+        {/* 头部：时间与动作对齐 */}
+        <div className="mb-2 flex items-center justify-between gap-2">
+          {(node.start_time || node.end_time) ? (
+            <span className="font-mono text-code-md font-bold text-primary">
+              {node.start_time ?? ""}
+              {node.end_time ? `–${node.end_time}` : ""}
+            </span>
+          ) : (
+            <div />
+          )}
           <div className="flex shrink-0 gap-2">
             <ActionBtn>编辑</ActionBtn>
             <ActionBtn>{overnight ? "入住" : "标记"}</ActionBtn>
           </div>
         </div>
+
+        {/* 标题单独成行，允许横向铺满 */}
+        <h3 className="mb-4 text-headline-md text-ink leading-snug">{node.name}</h3>
 
         {node.image && (
           <SmartImage
@@ -133,7 +135,7 @@ function StopCard({ node }: { node: ItineraryNode }) {
         {node.notes && <p className="mb-4 text-body-md text-on-surface-variant">{node.notes}</p>}
 
         {overnight && (
-          <span className="mb-4 inline-block rounded bg-secondary-container px-2 py-1 font-mono text-label-sm font-bold uppercase text-on-surface-variant">
+          <span className="mb-4 inline-block rounded bg-secondary-container px-2 py-1 font-mono text-label-sm font-bold uppercase text-ink">
             已确认
           </span>
         )}
@@ -169,7 +171,7 @@ export function RouteTimeline({ itinerary }: { itinerary: Itinerary }) {
   return (
     <section>
       <h2 className="mb-6 flex items-center gap-2 font-mono text-label-sm font-bold uppercase text-on-surface-variant">
-        <span className="h-2 w-2 rounded-full bg-primary-container" />
+        <span className="h-2 w-2 rounded-full bg-primary" />
         路线时间轴_
       </h2>
 
@@ -187,9 +189,9 @@ export function RouteTimeline({ itinerary }: { itinerary: Itinerary }) {
 
         {/* 添加节点入口（MVP 占位） */}
         <div className="relative pl-12">
-          <button className="group flex w-full items-center gap-3 rounded-lg border border-dashed border-outline bg-surface/50 p-4 transition-colors hover:bg-surface-container-low">
-            <Plus size={18} className="text-outline transition-colors group-hover:text-primary-container" />
-            <span className="font-mono text-code-md text-outline transition-colors group-hover:text-primary-container">
+          <button className="group flex w-full items-center gap-3 rounded-lg border border-dashed border-outline bg-surface/50 p-4 transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+            <Plus size={18} className="text-outline transition-colors group-hover:text-primary" />
+            <span className="font-mono text-code-md text-outline transition-colors group-hover:text-primary">
               添加新节点_
             </span>
           </button>

@@ -13,9 +13,9 @@ export function ThinkingSteps({ steps }: { steps: ThinkingStep[] }) {
         {steps.map((s) => (
           <li key={s.id} className="flex items-center gap-2 font-mono text-label-sm">
             {s.status === "done" ? (
-              <Check size={12} className="shrink-0 text-teal" />
+              <Check size={12} className="shrink-0 text-secondary" />
             ) : (
-              <Loader2 size={12} className="shrink-0 animate-spin text-primary-container" />
+              <Loader2 size={12} className="shrink-0 animate-spin text-primary" />
             )}
             <span className={s.status === "done" ? "text-on-surface-variant" : "text-ink"}>
               {toolLabel(s.tool)}
