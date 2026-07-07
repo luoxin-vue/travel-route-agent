@@ -21,3 +21,5 @@ frontend/dev-dist/
 
 # Temp docs
 multi_agent_flow.md
+agent_architecture_analysis.md
+multi_agent_optimization_guide.md
