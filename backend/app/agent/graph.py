@@ -4,8 +4,9 @@ from langchain_core.messages import AnyMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, START, END
+from langchain.agents import create_agent
 from langgraph.graph.message import add_messages
-from langgraph.prebuilt import create_react_agent, ToolNode
+from langgraph.prebuilt import ToolNode
 
 from app.agent.llm import build_llm
 from app.agent.mcp_tools import load_amap_tools
@@ -78,15 +79,15 @@ async def get_agent():
         llm = build_llm()
 
         # 2. 构建专职子 Agent
-        transit_agent = create_react_agent(
+        transit_agent = create_agent(
             model=llm,
             tools=transit_tools,
-            prompt=TRANSIT_PROMPT,
+            system_prompt=TRANSIT_PROMPT,
         )
-        lodging_agent = create_react_agent(
+        lodging_agent = create_agent(
             model=llm,
             tools=lodging_tools,
-            prompt=LODGING_PROMPT,
+            system_prompt=LODGING_PROMPT,
         )
 
         # 3. 定义主管 Agent 的工具节点
