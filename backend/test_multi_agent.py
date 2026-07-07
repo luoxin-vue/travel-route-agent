@@ -22,13 +22,17 @@ async def test_compilation():
         from langgraph.graph.state import CompiledStateGraph
         assert isinstance(agent, CompiledStateGraph), "Agent should be a compiled StateGraph"
         
-        # Check node configuration
+        # Check node configuration for Single Agent
         nodes = agent.get_graph().nodes
-        assert "Supervisor" in nodes, "Supervisor node is missing"
-        assert "SupervisorTools" in nodes, "SupervisorTools node is missing"
-        assert "TransitAgent" in nodes, "TransitAgent node is missing"
-        assert "LodgingAgent" in nodes, "LodgingAgent node is missing"
-        print("[OK] StateGraph compiled and validated successfully with all expected nodes.")
+        assert "model" in nodes, "model node is missing"
+        assert "tools" in nodes, "tools node is missing"
+        print("[OK] Single-Agent Compiled and validated successfully with expected nodes.")
+        
+        # 原多 Agent 节点断言注释保留供学习参考：
+        # assert "Supervisor" in nodes, "Supervisor node is missing"
+        # assert "SupervisorTools" in nodes, "SupervisorTools node is missing"
+        # assert "TransitAgent" in nodes, "TransitAgent node is missing"
+        # assert "LodgingAgent" in nodes, "LodgingAgent node is missing"
     finally:
         graph.load_amap_tools = original_load
 
