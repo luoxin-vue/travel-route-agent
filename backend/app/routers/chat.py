@@ -25,7 +25,7 @@ def _summarize_input(data) -> str:
     """从工具入参里提取一句话摘要，用于前端「思考过程」展示。"""
     if not isinstance(data, dict):
         return ""
-    for key in ("keywords", "keyword", "address", "location", "name", "city"):
+    for key in ("keywords", "keyword", "address", "location", "name", "city", "instruction"):
         val = data.get(key)
         if val:
             return str(val)[:40]
