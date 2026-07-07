@@ -57,6 +57,19 @@ async def chat(req: ChatRequest):
                     )
                     if reasoning:
                         yield _sse("thinking", {"text": reasoning})
+                    
+                    # ponytail: filter out tool calls/arguments from being emitted as conversational text tokens.
+                    # This prevents the frontend from printing raw tool calls/JSON on the screen when using OpenAI-compatible models.
+                    if (
+                        getattr(chunk, "tool_calls", None)
+                        or getattr(chunk, "tool_call_chunks", None)
+                        or (
+                            isinstance(chunk.additional_kwargs, dict)
+                            and chunk.additional_kwargs.get("tool_calls")
+                        )
+                    ):
+                        continue
+
                     text = getattr(chunk, "content", "") or ""
                     if text:
                         yield _sse("token", {"text": text})
