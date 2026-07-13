@@ -14,6 +14,7 @@ function formatSavedAt(ts: number): string {
 export function RouteCard({ route }: { route: SavedRoute }) {
   const setItinerary = useAppStore((s) => s.setItinerary);
   const setTab = useAppStore((s) => s.setTab);
+  const setActiveRouteId = useAppStore((s) => s.setActiveRouteId);
   const toggleRouteStatus = useAppStore((s) => s.toggleRouteStatus);
   const toggleRouteFavorite = useAppStore((s) => s.toggleRouteFavorite);
   const deleteRoute = useAppStore((s) => s.deleteRoute);
@@ -95,6 +96,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
           <button
             onClick={() => {
               setItinerary(itinerary);
+              setActiveRouteId(route.id);
               setTab("plan");
             }}
             className="flex shrink-0 items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"

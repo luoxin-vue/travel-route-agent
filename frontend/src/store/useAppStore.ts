@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ChatMessage, Itinerary, SavedRoute, Tab, ThinkingStep } from "../types";
+import { isStopNode, nodeKey } from "../types";
 
 interface Telemetry {
   tool: string | null; // 当前/最近运行的工具名
@@ -13,6 +14,7 @@ interface AppState {
   messages: ChatMessage[];
   itinerary: Itinerary | null;
   savedRoutes: SavedRoute[];
+  activeRouteId: string | null;
   telemetry: Telemetry;
   streaming: boolean;
 
@@ -27,6 +29,8 @@ interface AppState {
   toggleRouteStatus: (id: string) => void;
   toggleRouteFavorite: (id: string) => void;
   deleteRoute: (id: string) => void;
+  setActiveRouteId: (id: string | null) => void;
+  toggleNodeComplete: (routeId: string, key: string) => void;
   setTelemetry: (t: Telemetry) => void;
   setStreaming: (b: boolean) => void;
 }
@@ -63,6 +67,7 @@ export const useAppStore = create<AppState>()(
       messages: [],
       itinerary: null,
       savedRoutes: [],
+      activeRouteId: null,
       telemetry: { tool: null, status: "idle" as const },
       streaming: false,
 
@@ -96,15 +101,18 @@ export const useAppStore = create<AppState>()(
           })),
         })),
       setItinerary: (itinerary) => set({ itinerary }),
-      // 自动入库：同签名（标题|天数）已存在则更新行程内容并保留用户的状态/收藏标记。
+      // 自动入库：同签名（标题|天数）已存在则更新行程内容并保留用户的状态/收藏标记，
+      // 同时清洗 completedNodes，只保留新 nodes 中仍能匹配到的键。
       saveRoute: (itinerary) =>
         set((s) => {
           const sig = routeSignature(itinerary);
           const existing = s.savedRoutes.find((r) => routeSignature(r.itinerary) === sig);
           if (existing) {
+            const newKeys = new Set(itinerary.nodes.map(nodeKey));
+            const cleaned = existing.completedNodes.filter((k) => newKeys.has(k));
             return {
               savedRoutes: s.savedRoutes.map((r) =>
-                r.id === existing.id ? { ...r, itinerary, savedAt: Date.now() } : r,
+                r.id === existing.id ? { ...r, itinerary, savedAt: Date.now(), completedNodes: cleaned } : r,
               ),
             };
           }
@@ -116,6 +124,7 @@ export const useAppStore = create<AppState>()(
                 status: "planned" as const,
                 favorite: false,
                 itinerary,
+                completedNodes: [],
               },
               ...s.savedRoutes,
             ],
@@ -140,6 +149,25 @@ export const useAppStore = create<AppState>()(
         })),
       deleteRoute: (id) =>
         set((s) => ({ savedRoutes: s.savedRoutes.filter((r) => r.id !== id) })),
+      setActiveRouteId: (activeRouteId) => set({ activeRouteId }),
+      toggleNodeComplete: (routeId, key) =>
+        set((s) => ({
+          savedRoutes: s.savedRoutes.map((r) => {
+            if (r.id !== routeId) return r;
+            const set = new Set(r.completedNodes);
+            if (set.has(key)) set.delete(key);
+            else set.add(key);
+            const stopKeys = r.itinerary.nodes
+              .filter(isStopNode)
+              .map(nodeKey);
+            const allDone = stopKeys.length > 0 && stopKeys.every((k) => set.has(k));
+            return {
+              ...r,
+              completedNodes: [...set],
+              status: allDone ? ("completed" as const) : ("planned" as const),
+            };
+          }),
+        })),
       setTelemetry: (telemetry) => set({ telemetry }),
       setStreaming: (streaming) => set({ streaming }),
     }),

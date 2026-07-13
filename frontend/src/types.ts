@@ -46,4 +46,17 @@ export interface SavedRoute {
   status: RouteStatus;
   favorite: boolean;
   itinerary: Itinerary;
+  /** 已完成节点复合键（name|start_time|type），与 ItineraryNode 解耦。 */
+  completedNodes: string[];
+}
+
+/** 节点复合键：name|start_time||day||type，用于打卡匹配。无 start_time 时用 day 替代。 */
+export function nodeKey(n: ItineraryNode): string {
+  const timeOrDay = n.start_time ?? (n.day != null ? `d${n.day}` : "");
+  return `${n.name}|${timeOrDay}|${n.type}`;
+}
+
+/** 非交通节点（activity / lodging）。 */
+export function isStopNode(n: ItineraryNode): boolean {
+  return n.type !== "transport";
 }

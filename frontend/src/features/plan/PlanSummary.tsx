@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Itinerary } from "../../types";
+import { isStopNode } from "../../types";
 import { proxiedImage } from "../../lib/img";
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -12,11 +13,20 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /** 行程概要头部：有封面图则用图 + 标题叠加，否则用紧凑文字标题；下方为关键指标。 */
-export function PlanSummary({ itinerary }: { itinerary: Itinerary }) {
-  const stops = itinerary.nodes.filter((n) => n.type !== "transport").length;
-  const legs = itinerary.nodes.filter((n) => n.type === "transport").length;
+export function PlanSummary({
+  itinerary,
+  completedCount,
+  totalStops,
+}: {
+  itinerary: Itinerary;
+  completedCount?: number;
+  totalStops?: number;
+}) {
+  const stops = itinerary.nodes.filter(isStopNode).length;
+  const legs = itinerary.nodes.length - stops;
   const [coverOk, setCoverOk] = useState(true);
   const hasCover = !!itinerary.cover_image && coverOk;
+  const showProgress = completedCount != null && totalStops != null;
 
   return (
     <section className="mb-6">
@@ -45,6 +55,18 @@ export function PlanSummary({ itinerary }: { itinerary: Itinerary }) {
         <Stat label="途经站点" value={`${stops}`} />
         <Stat label="交通路段" value={`${legs}`} />
       </div>
+
+      {showProgress && (
+        <div className="mt-3 flex items-center gap-2 font-mono text-label-sm text-on-surface-variant">
+          <span className="font-bold text-secondary">已完成 {completedCount}/{totalStops}</span>
+          <div className="h-1 flex-1 rounded-full bg-surface-container-high">
+            <div
+              className="h-1 rounded-full bg-secondary transition-all"
+              style={{ width: `${totalStops > 0 ? ((completedCount ?? 0) / totalStops) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

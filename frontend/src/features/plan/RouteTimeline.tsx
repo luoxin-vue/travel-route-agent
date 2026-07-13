@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Itinerary, ItineraryNode } from "../../types";
+import { nodeKey } from "../../types";
 import { SmartImage } from "../../components/SmartImage";
 
 /** 行程节点的 protocol（方式）英文 → 中文，未命中回退原值。 */
@@ -60,10 +61,25 @@ function protocolIcon(protocol?: string | null): LucideIcon {
   }
 }
 
-/** CLI 风动作按钮（MVP 占位）。 */
-function ActionBtn({ children }: { children: string }) {
+/** CLI 风动作按钮。 */
+function ActionBtn({
+  children,
+  onClick,
+  active,
+}: {
+  children: string;
+  onClick?: () => void;
+  active?: boolean;
+}) {
   return (
-    <button className="border border-outline px-2 py-1 font-mono text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-highest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+    <button
+      onClick={onClick}
+      className={`border border-outline px-2 py-1 font-mono text-label-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded ${
+        active
+          ? "border-secondary bg-secondary/10 text-secondary"
+          : "text-on-surface-variant hover:bg-surface-container-highest"
+      }`}
+    >
       [{children}]
     </button>
   );
@@ -88,8 +104,17 @@ function TransportLink({ node }: { node: ItineraryNode }) {
 }
 
 /** 站点卡片（活动 / 住宿）。住宿=过夜：顶部 4px 主色条 + 实心带环节点。 */
-function StopCard({ node }: { node: ItineraryNode }) {
+function StopCard({
+  node,
+  completed,
+  onToggle,
+}: {
+  node: ItineraryNode;
+  completed?: boolean;
+  onToggle?: () => void;
+}) {
   const overnight = node.type === "lodging";
+
   return (
     <div className="relative mb-6 pl-12">
       {/* 节点圆点：活动=空心，过夜=实心+主色环 */}
@@ -117,12 +142,19 @@ function StopCard({ node }: { node: ItineraryNode }) {
           )}
           <div className="flex shrink-0 gap-2">
             <ActionBtn>编辑</ActionBtn>
-            <ActionBtn>{overnight ? "入住" : "标记"}</ActionBtn>
+            {onToggle ? (
+              <ActionBtn active={completed} onClick={onToggle}>
+                {completed ? "已完成" : "标记"}
+              </ActionBtn>
+            ) : null}
           </div>
         </div>
 
         {/* 标题单独成行，允许横向铺满 */}
-        <h3 className="mb-4 text-headline-md text-ink leading-snug">{node.name}</h3>
+        <h3 className="mb-4 text-headline-md text-ink leading-snug">
+          {completed ? <span className="mr-1.5 text-secondary">✓</span> : null}
+          {node.name}
+        </h3>
 
         {node.image && (
           <SmartImage
@@ -167,7 +199,17 @@ function StopCard({ node }: { node: ItineraryNode }) {
 }
 
 /** 路线时间轴（参考设计稿）：竖向虚线 + 站点卡片 + 交通衔接 + 添加节点入口。 */
-export function RouteTimeline({ itinerary }: { itinerary: Itinerary }) {
+export function RouteTimeline({
+  itinerary,
+  completedNodes,
+  onToggleNode,
+}: {
+  itinerary: Itinerary;
+  completedNodes?: string[];
+  onToggleNode?: (key: string) => void;
+}) {
+  const completedSet = new Set(completedNodes ?? []);
+
   return (
     <section>
       <h2 className="mb-6 flex items-center gap-2 font-mono text-label-sm font-bold uppercase text-on-surface-variant">
@@ -183,7 +225,12 @@ export function RouteTimeline({ itinerary }: { itinerary: Itinerary }) {
           node.type === "transport" ? (
             <TransportLink key={i} node={node} />
           ) : (
-            <StopCard key={i} node={node} />
+            <StopCard
+              key={i}
+              node={node}
+              completed={completedSet.has(nodeKey(node))}
+              onToggle={onToggleNode ? () => onToggleNode(nodeKey(node)) : undefined}
+            />
           ),
         )}
 
