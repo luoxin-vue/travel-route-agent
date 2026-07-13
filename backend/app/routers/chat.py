@@ -25,7 +25,7 @@ def _summarize_input(data) -> str:
     """从工具入参里提取一句话摘要，用于前端「思考过程」展示。"""
     if not isinstance(data, dict):
         return ""
-    for key in ("keywords", "keyword", "address", "location", "name", "city"):
+    for key in ("keywords", "keyword", "address", "location", "name", "city", "instruction"):
         val = data.get(key)
         if val:
             return str(val)[:40]
@@ -57,6 +57,19 @@ async def chat(req: ChatRequest):
                     )
                     if reasoning:
                         yield _sse("thinking", {"text": reasoning})
+                    
+                    # ponytail: 过滤掉工具调用/参数，避免其被当作对话文本 token 推送给前端。
+                    # 这样可以防止在使用 OpenAI 兼容接口的模型时，前端直接把工具调用的 JSON 源码打印在屏幕上。
+                    if (
+                        getattr(chunk, "tool_calls", None)
+                        or getattr(chunk, "tool_call_chunks", None)
+                        or (
+                            isinstance(chunk.additional_kwargs, dict)
+                            and chunk.additional_kwargs.get("tool_calls")
+                        )
+                    ):
+                        continue
+
                     text = getattr(chunk, "content", "") or ""
                     if text:
                         yield _sse("token", {"text": text})

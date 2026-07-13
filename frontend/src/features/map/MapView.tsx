@@ -39,7 +39,7 @@ export function MapView() {
         new AMap.Polyline({
           map,
           path: points.map((p) => p.pos),
-          strokeColor: "#d97757",
+          strokeColor: "#99462a",
           strokeWeight: 4,
           strokeStyle: "dashed",
         });
@@ -60,5 +60,5 @@ export function MapView() {
   if (!JS_KEY) {
     return <EmptyState title="缺少高德 JS KEY" hint="请在 frontend/.env 配置 VITE_AMAP_JS_KEY 后重启。" />;
   }
-  return <div ref={containerRef} className="h-full w-full" />;
+  return <div ref={containerRef} aria-label="旅行线路地图，标记并连接各个途经点" className="h-full w-full" />;
 }

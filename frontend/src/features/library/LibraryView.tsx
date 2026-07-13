@@ -35,9 +35,9 @@ export function LibraryView() {
   const newJourneyCard = (
     <button
       onClick={() => setTab("chat")}
-      className="group flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-outline-variant text-on-surface-variant transition-colors hover:border-primary-container hover:text-primary-container"
+      className="group flex min-h-[16rem] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-outline-variant text-on-surface-variant transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-outline-variant transition-colors group-hover:border-primary-container">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-outline-variant transition-colors group-hover:border-primary">
         <Plus size={20} />
       </span>
       <span className="font-mono text-label-sm">开启新旅程</span>
@@ -72,7 +72,8 @@ export function LibraryView() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索路线或地点…"
-              className="w-full rounded-full border border-outline-variant bg-surface-container-lowest py-2 pl-9 pr-4 text-body-md text-ink outline-none transition-colors placeholder:text-on-surface-variant/40 focus:border-primary-container"
+              aria-label="搜索已保存的旅行路线或景点地点"
+              className="w-full rounded-full border border-outline-variant bg-surface-container-lowest py-2 pl-9 pr-4 text-body-md text-ink outline-none transition-colors placeholder:text-on-surface-variant/40 focus:border-primary"
             />
           </div>
 
@@ -81,9 +82,9 @@ export function LibraryView() {
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`shrink-0 rounded-full px-3 py-1.5 font-mono text-label-sm transition-colors ${
+                className={`shrink-0 rounded-full px-3 py-1.5 font-mono text-label-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   filter === key
-                    ? "bg-primary-container text-on-primary"
+                    ? "bg-primary text-on-primary"
                     : "border border-outline-variant text-on-surface-variant hover:bg-surface-container"
                 }`}
               >

@@ -6,8 +6,8 @@ type Tone = "teal" | "orange";
 export function Chip({ tone = "teal", children }: { tone?: Tone; children: ReactNode }) {
   const styles =
     tone === "teal"
-      ? "bg-teal/10 text-teal"
-      : "bg-primary-container/10 text-primary-container";
+      ? "bg-teal/10 text-secondary"
+      : "bg-primary/10 text-primary";
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-label-sm uppercase ${styles}`}>
       {children}

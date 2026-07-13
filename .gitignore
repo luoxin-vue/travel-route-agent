@@ -18,3 +18,8 @@ frontend/dev-dist/
 .DS_Store
 .vscode/
 *.log
+
+# Temp docs
+multi_agent_flow.md
+agent_architecture_analysis.md
+multi_agent_optimization_guide.md
