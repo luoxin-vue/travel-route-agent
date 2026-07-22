@@ -88,7 +88,7 @@ async def _photon_search(
     query: str, lat: Optional[float] = None, lng: Optional[float] = None, limit: int = 5,
 ) -> list[dict]:
     """调用 Photon API 搜索，返回 [{name, lat, lng, category, country, city}]。"""
-    params: dict = {"q": query, "limit": str(limit), "lang": "zh"}
+    params: dict = {"q": query, "limit": str(limit)}
     if lat is not None and lng is not None:
         params["lat"] = str(lat)
         params["lon"] = str(lng)
@@ -213,7 +213,12 @@ async def intl_search_detail(name: str) -> str:
             commons_pages = commons_data.get("query", {}).get("search", [])
             if commons_pages:
                 title = commons_pages[0]["title"]
-                image_url = f"https://commons.wikimedia.org/wiki/Special:FilePath/{title.replace(' ', '_')}?width=400"
+                # 去掉 "File:" 前缀
+                clean_title = title[5:] if title.startswith("File:") else title
+                image_url = (
+                    "https://commons.wikimedia.org/wiki/Special:FilePath/"
+                    f"{clean_title.replace(' ', '_')}?width=400"
+                )
 
         # 3) Pexels 第三兜底（需 PEXELS_API_KEY 环境变量，不填跳过）
         if not image_url:

@@ -146,6 +146,29 @@ async def test_intl_search_detail_pexels_after_wiki_no_image():
         assert "p.com/img.jpg" in result
 
 
+@pytest.mark.asyncio
+async def test_intl_search_detail_commons_strips_file_prefix():
+    """Wikimedia Commons 返回 File:xxx 标题 → URL 应去掉 File: 前缀"""
+    with patch("app.agent.intl_tools._client") as mock_client:
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 1}]}}),    # zh search OK
+            _mock_response({"query": {"pages": {"1": {
+                "extract": "desc.", "thumbnail": None,
+            }}}}),  # zh detail 无 thumbnail
+            _mock_response({"query": {"search": [{"title": "File:My Photo.jpg"}]}}),  # Wikimedia
+            _mock_response({}),  # Pexels skip
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Test"})
+        assert "My_Photo.jpg" in result
+        assert "File:" not in result
+
+
 # ── Haversine ──
 def test_haversine_km_known():
     """北京天安门 → 故宫北门 ≈ 1.5km"""
