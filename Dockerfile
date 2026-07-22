@@ -20,7 +20,7 @@ FROM python:3.12-slim AS runtime
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app/backend
 COPY backend/requirements.txt ./
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 COPY backend/ ./
 # main.py 用 parents[2]/frontend/dist 定位前端；WORKDIR=/app/backend 时即 /app/frontend/dist。
 COPY --from=frontend /fe/dist /app/frontend/dist
