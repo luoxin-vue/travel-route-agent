@@ -93,7 +93,7 @@ export function ChatView() {
       <div ref={scrollRef} className="airy-scroll flex-1 space-y-6 overflow-y-auto px-4 pb-6 pt-4">
         {messages.length === 0 && (
           <div className="flex flex-col gap-3 pt-2">
-            <div className="mx-auto max-w-xl rounded-2xl border border-card-border/80 bg-surface-container-lowest p-6 shadow-float">
+            <div className="airy-card mx-auto max-w-xl p-6">
               <div className="mb-3 flex items-center gap-2.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-primary">
                   <Sparkles size={18} />
@@ -143,7 +143,7 @@ export function ChatView() {
                 {isLast && streaming ? "行程生成中" : "Concierge"}
               </div>
 
-              <div className="max-w-3xl rounded-2xl rounded-tl-xs border border-card-border bg-surface-container-lowest p-5 shadow-float">
+              <div className="airy-card max-w-3xl rounded-tl-xs p-5">
                 <ReasoningBlock text={m.reasoning ?? ""} active={isLast && streaming && !m.content} />
                 <ThinkingSteps steps={m.steps ?? []} />
                 {isLast &&

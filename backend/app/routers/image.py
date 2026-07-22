@@ -15,7 +15,7 @@ _ALLOWED_SUFFIXES = (".amap.com", ".autonavi.com")
 
 def _allowed(url: str) -> bool:
     host = (urlparse(url).hostname or "").lower()
-    return any(host == s.lstrip(".") or host.endswith(s) for s in _ALLOWED_SUFFIXES)
+    return any(host == domain_suffix.lstrip(".") or host.endswith(domain_suffix) for domain_suffix in _ALLOWED_SUFFIXES)
 
 
 @router.get("/img")
@@ -25,13 +25,13 @@ async def proxy_image(url: str = Query(..., description="高德图片 URL")):
     try:
         # trust_env=True → 复用 main.py 注入的 HTTP(S)_PROXY
         async with httpx.AsyncClient(timeout=20, trust_env=True, follow_redirects=True) as client:
-            r = await client.get(url)
+            response = await client.get(url)
     except Exception:  # noqa: BLE001
         raise HTTPException(status_code=502, detail="fetch failed")
-    if r.status_code != 200:
+    if response.status_code != 200:
         raise HTTPException(status_code=502, detail="upstream error")
     return Response(
-        content=r.content,
-        media_type=r.headers.get("content-type", "image/jpeg"),
+        content=response.content,
+        media_type=response.headers.get("content-type", "image/jpeg"),
         headers={"Cache-Control": "public, max-age=86400"},
     )

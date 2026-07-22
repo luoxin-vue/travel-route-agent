@@ -15,18 +15,18 @@ from app.config import get_settings
 
 
 def build_llm() -> BaseChatModel:
-    s = get_settings()
-    if "deepseek" in s.llm_base_url.lower():
+    settings = get_settings()
+    if "deepseek" in settings.llm_base_url.lower():
         return ChatDeepSeek(
-            model=s.llm_model,
-            api_key=s.llm_api_key,
-            api_base=s.llm_base_url,
+            model=settings.llm_model,
+            api_key=settings.llm_api_key,
+            api_base=settings.llm_base_url,
             streaming=True,
         )
     return ChatOpenAI(
-        model=s.llm_model,
-        api_key=s.llm_api_key,
-        base_url=s.llm_base_url,
+        model=settings.llm_model,
+        api_key=settings.llm_api_key,
+        base_url=settings.llm_base_url,
         temperature=0.3,
         streaming=True,
     )

@@ -57,7 +57,7 @@ def _server_config() -> dict:
         return {
             "amap": {
                 "transport": "streamable_http",
-                "url": s.amap_mcp_http_url,
+                "url": settings.amap_mcp_http_url,
                 "timeout": 30,
                 "sse_read_timeout": 60,
             }
@@ -67,7 +67,7 @@ def _server_config() -> dict:
     return {
         "amap": {
             "transport": "sse",
-            "url": s.amap_mcp_sse_url,
+            "url": settings.amap_mcp_sse_url,
             "timeout": 30,
             "sse_read_timeout": 60,
         }
@@ -75,17 +75,12 @@ def _server_config() -> dict:
 
 
 async def load_amap_tools() -> list:
-    """拉取高德 MCP 工具：geo / regeocode / direction_* / text_search /
-    around_search / search_detail / distance / weather / ip_location 等。
-
-    初始的 list_tools 握手在弱网下也会偶发掉连接，这里同样加重试。
-    """
     client = MultiServerMCPClient(_server_config())
     last_err = None
     for attempt in range(_MAX_RETRIES):
         try:
             tools = await client.get_tools()
-            return [_with_retry(t) for t in tools]
+            return [_with_retry(amap_tool) for amap_tool in tools]
         except Exception as err:  # noqa: BLE001 握手层异常
             last_err = err
             await asyncio.sleep(0.6 * (attempt + 1))

@@ -73,7 +73,7 @@ function TransportLink({ node }: { node: ItineraryNode }) {
         <Icon size={16} className="text-secondary shrink-0" />
         <span className="font-medium text-ink">{node.name}</span>
         {label ? <span className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface-variant">{label}</span> : null}
-        {node.start_time ? <span className="ml-auto text-[12px] tabular-nums font-mono text-on-surface-variant/70">{node.start_time}</span> : null}
+        {node.start_time ? <span className="ml-auto text-[12px] tabular-nums text-on-surface-variant/70">{node.start_time}</span> : null}
       </div>
     </div>
   );

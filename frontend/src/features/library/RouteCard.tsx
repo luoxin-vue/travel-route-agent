@@ -3,21 +3,17 @@ import { useAppStore } from "../../store/useAppStore";
 import { SmartImage } from "../../components/SmartImage";
 import type { SavedRoute } from "../../types";
 
-function formatSavedAt(timestamp: number): string {
-  return new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" }).format(timestamp);
-}
-
 export function RouteCard({ route }: { route: SavedRoute }) {
-  const setItinerary = useAppStore((s) => s.setItinerary);
-  const setTab = useAppStore((s) => s.setTab);
-  const setActiveRouteId = useAppStore((s) => s.setActiveRouteId);
-  const toggleRouteStatus = useAppStore((s) => s.toggleRouteStatus);
-  const toggleRouteFavorite = useAppStore((s) => s.toggleRouteFavorite);
-  const deleteRoute = useAppStore((s) => s.deleteRoute);
+  const setItinerary = useAppStore((storeState) => storeState.setItinerary);
+  const setTab = useAppStore((storeState) => storeState.setTab);
+  const setActiveRouteId = useAppStore((storeState) => storeState.setActiveRouteId);
+  const toggleRouteStatus = useAppStore((storeState) => storeState.toggleRouteStatus);
+  const toggleRouteFavorite = useAppStore((storeState) => storeState.toggleRouteFavorite);
+  const deleteRoute = useAppStore((storeState) => storeState.deleteRoute);
 
   const { itinerary } = route;
-  const stops = itinerary.nodes.filter((n) => n.type !== "transport");
-  const summary = (stops.length > 0 ? stops : itinerary.nodes).map((n) => n.name).join(" · ");
+  const stops = itinerary.nodes.filter((node) => node.type !== "transport");
+  const summary = (stops.length > 0 ? stops : itinerary.nodes).map((node) => node.name).join(" · ");
   const firstStop = stops[0]?.name ?? itinerary.nodes[0]?.name ?? "未知地点";
   const completed = route.status === "completed";
 
@@ -35,7 +31,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <span className="absolute right-3 top-3 rounded-full bg-surface/90 backdrop-blur px-3 py-0.5 text-[11px] font-medium text-ink shadow-soft tabular-nums">
-          {itinerary.days} 天 · {formatSavedAt(route.savedAt)} 保存
+          {itinerary.days} 天 · {new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" }).format(route.savedAt)} 保存
         </span>
       </div>
 
