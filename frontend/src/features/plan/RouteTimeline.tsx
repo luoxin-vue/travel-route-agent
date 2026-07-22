@@ -47,24 +47,16 @@ function protocolIcon(protocol?: string | null): LucideIcon {
   }
 }
 
-function TransportLink({ node, onEdit }: { node: ItineraryNode; onEdit?: () => void }) {
+function TransportLink({ node }: { node: ItineraryNode }) {
   const Icon = protocolIcon(node.protocol);
   const label = protocolLabel(node.protocol);
   return (
     <div className="relative mb-5 pl-10">
-      <div className="group flex items-center gap-2.5 rounded-xl bg-surface-container-low/40 px-3.5 py-2 text-[13px] text-on-surface-variant hover:bg-surface-container/70 transition-all">
+      <div className="flex items-center gap-2.5 rounded-xl bg-surface-container-low/40 px-3.5 py-2 text-[13px] text-on-surface-variant">
         <Icon size={16} className="text-secondary shrink-0" />
         <span className="font-medium text-ink">{node.name}</span>
         {label ? <span className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface-variant">{label}</span> : null}
         {node.start_time ? <span className="ml-auto text-[12px] tabular-nums text-on-surface-variant/70">{node.start_time}</span> : null}
-        {onEdit ? (
-          <button
-            onClick={onEdit}
-            className="ml-2 hidden rounded-full border border-card-border bg-surface px-2 py-0.5 text-[11px] font-medium text-on-surface-variant hover:text-ink group-hover:inline-block transition-all"
-          >
-            编辑
-          </button>
-        ) : null}
       </div>
     </div>
   );
@@ -237,7 +229,7 @@ export function RouteTimeline({
 
         {itinerary.nodes.map((node, i) =>
           node.type === "transport" ? (
-            <TransportLink key={i} node={node} onEdit={onEditNode ? () => onEditNode(i) : undefined} />
+            <TransportLink key={i} node={node} />
           ) : (
             <StopCard
               key={i}
