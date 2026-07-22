@@ -115,6 +115,8 @@ sudo docker compose down                 # 停
 - **对话报错 / 无响应**：多半是 `backend/.env` 的 key 错或 `PROXY_URL` 没留空。`docker compose exec app env | grep PROXY` 应为空。
 - **地图不显示 / 报「缺少高德 JS KEY」**：`.env` 的 VITE_AMAP_JS_KEY 没填、或没 `--build`、或高德控制台没加 `coderlx.dpdns.org` 安全域名。
 - **高德 MCP 偶发失败**：后端已内置重试（见 CLAUDE.md），偶发弱网重试即可。
+- **CI 构建 `npm ci` 报 `Missing: esbuild@0.28.1 from lock file`**：`package.json` 改了但 `package-lock.json` 没同步（通常是本地 `npm install` 后没提交 lock 文件，或依赖版本升级后 lock 文件过期）。修复：`cd frontend && rm -rf node_modules package-lock.json && npm install && git add package-lock.json`
+- **CI 构建 `pip install` 报 `Read timed out` / `ReadTimeoutError`**：国内 ECS 访问 `files.pythonhosted.org`（PyPI 官方源）网络不稳定。已切换清华镜像源 `-i https://pypi.tuna.tsinghua.edu.cn/simple`。若镜像也超时，可换阿里云镜像 `-i https://mirrors.aliyun.com/pypi/simple/`
 
 ---
 
