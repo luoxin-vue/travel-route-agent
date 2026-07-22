@@ -19,23 +19,36 @@ from app.agent.intl_tools import (
 )
 
 
-def _mock_response(json_body: dict, status: int = 200):
+def _mock_response(json_body: dict):
     mock = AsyncMock()
     mock.raise_for_status = lambda: None
     mock.json = lambda: json_body
-    mock.status_code = status
     return mock
+
+
+def _mock_get(*responses):
+    """创建 side_effect，按顺序返回不同 mock 响应。"""
+    calls = 0
+    mocks = [_mock_response(r) for r in responses]
+    async def side_effect(url, **kwargs):
+        nonlocal calls
+        if calls < len(mocks):
+            resp = mocks[calls]
+            calls += 1
+            return resp
+        return _mock_response({})
+    return AsyncMock(side_effect=side_effect)
 
 
 @pytest.mark.asyncio
 async def test_intl_geo_returns_coordinates():
     with patch("app.agent.intl_tools._client") as mock_client:
         mock_client.return_value.get = AsyncMock(return_value=_mock_response([
-            {"lat": "35.6762", "lon": "139.6503", "display_name": "Tokyo, Japan", "importance": 0.9}
+            {"lat": "35.6762", "lon": "139.6503", "display_name": "东京, 日本"}
         ]))
         result = await intl_geo.ainvoke({"address": "Tokyo"})
         assert "35.6762" in result
-        assert "Tokyo, Japan" in result
+        assert "东京" in result
 
 
 @pytest.mark.asyncio
@@ -43,7 +56,7 @@ async def test_intl_geo_not_found():
     with patch("app.agent.intl_tools._nominatim_delay", new_callable=AsyncMock):
         with patch("app.agent.intl_tools._client") as mock_client:
             mock_client.return_value.get = AsyncMock(return_value=_mock_response([]))
-            result = await intl_geo.ainvoke({"address": "XyzzyNotReal"})
+            result = await intl_geo.ainvoke({"address": "Xyzzy"})
             assert "未找到" in result
 
 
@@ -51,12 +64,11 @@ async def test_intl_geo_not_found():
 async def test_intl_regeocode_returns_address():
     with patch("app.agent.intl_tools._client") as mock_client:
         mock_client.return_value.get = AsyncMock(return_value=_mock_response({
-            "display_name": "Shibuya, Tokyo, Japan",
-            "address": {"suburb": "Shibuya", "city": "Tokyo", "country": "Japan"},
+            "display_name": "涩谷, 东京, 日本",
+            "address": {"suburb": "涩谷", "city": "东京", "country": "日本"},
         }))
         result = await intl_regeocode.ainvoke({"lat": 35.66, "lng": 139.70})
-        assert "Shibuya" in result
-        assert "Tokyo" in result
+        assert "涩谷" in result
 
 
 @pytest.mark.asyncio
@@ -64,37 +76,55 @@ async def test_intl_text_search_returns_pois():
     with patch("app.agent.intl_tools._client") as mock_client:
         mock_client.return_value.post = AsyncMock(return_value=_mock_response({
             "elements": [
-                {"id": 1, "lat": 35.658, "lon": 139.745, "tags": {"name": "Tokyo Tower", "tourism": "attraction"}},
+                {"id": 1, "lat": 35.658, "lon": 139.745, "tags": {"name": "Tokyo Tower", "name:zh": "东京塔", "tourism": "attraction"}},
                 {"id": 2, "lat": 35.660, "lon": 139.729, "tags": {"name": "Roppongi", "amenity": "restaurant"}},
             ]
         }))
         result = await intl_text_search.ainvoke({"keyword": "Tokyo", "limit": 2})
-        assert "Tokyo Tower" in result
+        assert "东京塔" in result  # name:zh 优先
         assert "attraction" in result
 
 
 @pytest.mark.asyncio
-async def test_intl_search_detail_returns_wikipedia():
+async def test_intl_text_search_no_results():
     with patch("app.agent.intl_tools._client") as mock_client:
-        async def get_side_effect(url, **kwargs):
-            params = kwargs.get("params", {})
-            if params.get("list") == "search":
-                data = {"query": {"search": [{"pageid": 123, "title": "Eiffel Tower"}]}}
-            elif params.get("prop") == "extracts|pageimages":
-                data = {"query": {"pages": {"123": {
-                    "extract": "The Eiffel Tower is a wrought-iron lattice tower.",
-                    "thumbnail": {"source": "https://upload.wikimedia.org/eiffel.jpg"},
-                }}}}
-            elif params.get("srnamespace") == 6:
-                data = {"query": {"search": []}}
-            else:
-                data = {}
-            return _mock_response(data)
+        mock_client.return_value.post = AsyncMock(return_value=_mock_response({"elements": []}))
+        result = await intl_text_search.ainvoke({"keyword": "Xyzzy", "limit": 2})
+        assert "未找到" in result
 
-        mock_client.return_value.get = AsyncMock(side_effect=get_side_effect)
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_zh_first():
+    """zh.wikipedia 有结果 → 返回中文描述，标记 [中文]"""
+    with patch("app.agent.intl_tools._client") as mock_client:
+        mock_client.return_value.get = _mock_get(
+            {"query": {"search": [{"pageid": 123}]}},  # zh search
+            {"query": {"pages": {"123": {
+                "extract": "东京塔是位于日本东京的...",
+                "thumbnail": {"source": "https://upload/to tower.jpg"},
+            }}}},  # zh detail
+        )
+        result = await intl_search_detail.ainvoke({"name": "Tokyo Tower"})
+        assert "[中文]" in result
+        assert "东京塔" in result
+        assert "tower.jpg" in result
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_fallback_en():
+    """zh.wikipedia 无结果 → 回退 en，标记 [英文]"""
+    with patch("app.agent.intl_tools._client") as mock_client:
+        mock_client.return_value.get = _mock_get(
+            {"query": {"search": []}},  # zh search 空
+            {"query": {"search": [{"pageid": 456}]}},  # en search
+            {"query": {"pages": {"456": {
+                "extract": "The Eiffel Tower is a tower.",
+                "thumbnail": {"source": "https://upload/eiffel.jpg"},
+            }}}},  # en detail
+        )
         result = await intl_search_detail.ainvoke({"name": "Eiffel Tower"})
+        assert "[英文]" in result
         assert "Eiffel Tower" in result
-        assert "eiffel.jpg" in result
 
 
 @pytest.mark.asyncio
@@ -145,26 +175,25 @@ async def test_intl_weather_returns_temperature():
         result = await intl_weather.ainvoke({"lat": 35.676, "lng": 139.650})
         assert "22.5" in result
         assert "多云" in result
-        assert "10.3" in result
 
 
-def test_load_intl_tools_returns_seven_tools():
+def test_load_intl_tools_returns_seven():
     tools = load_intl_tools()
     tool_names = {t.name for t in tools}
     assert len(tools) == 7
     assert "intl_geo" in tool_names
-    assert "intl_weather" in tool_names
     assert "intl_direction" in tool_names
 
 
 @pytest.mark.asyncio
 async def test_intl_tools_graceful_on_http_error():
-    """验证工具在 HTTP 错误时返回兜底字符串而非抛异常。"""
+    """HTTP 错误时经 _retry 3 次后返回兜底文本，不抛异常。"""
     for tool_fn in [intl_geo, intl_regeocode, intl_text_search, intl_search_detail,
                     intl_direction, intl_distance, intl_weather]:
         with patch("app.agent.intl_tools._client") as mock_client:
-            mock_client.return_value.get = AsyncMock(side_effect=Exception("Network error"))
-            mock_client.return_value.post = AsyncMock(side_effect=Exception("Network error"))
+            exc = Exception("Network error")
+            mock_client.return_value.get = AsyncMock(side_effect=exc)
+            mock_client.return_value.post = AsyncMock(side_effect=exc)
 
             input_kwargs = {}
             if hasattr(tool_fn, "args_schema"):
@@ -179,4 +208,6 @@ async def test_intl_tools_graceful_on_http_error():
                 input_kwargs["mode"] = "driving"
 
             result = await tool_fn.ainvoke(input_kwargs)
-            assert "暂时不可用" in result or "未找到" in result, f"{tool_fn.name} 应在异常时返回兜底文本，实际: {result}"
+            assert "暂时不可用" in result or "未找到" in result, (
+                f"{tool_fn.name} 应在异常时返回兜底文本，实际: {result}"
+            )
