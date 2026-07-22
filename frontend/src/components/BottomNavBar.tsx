@@ -1,20 +1,20 @@
-import { MessageSquare, ListTree, Map, Route } from "lucide-react";
+import { MessageCircle, CalendarRange, MapPin, Bookmark } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import type { Tab } from "../types";
 
-const items: { tab: Tab; label: string; icon: typeof Map }[] = [
-  { tab: "chat", label: "会话", icon: MessageSquare },
-  { tab: "plan", label: "计划", icon: ListTree },
-  { tab: "map", label: "地图", icon: Map },
-  { tab: "library", label: "路线库", icon: Route },
+const items: { tab: Tab; label: string; icon: typeof MapPin }[] = [
+  { tab: "chat", label: "灵感对话", icon: MessageCircle },
+  { tab: "plan", label: "行程计划", icon: CalendarRange },
+  { tab: "map", label: "路线地图", icon: MapPin },
+  { tab: "library", label: "收藏路线", icon: Bookmark },
 ];
 
-/** 底部导航：会话 / 计划 / 地图 / 路线库。 */
+/** 底部导航：空气感微浮调导航栏。 */
 export function BottomNavBar() {
   const tab = useAppStore((s) => s.tab);
   const setTab = useAppStore((s) => s.setTab);
   return (
-    <nav className="flex items-stretch border-t border-card-border bg-surface">
+    <nav className="flex items-center justify-around border-t border-card-border/80 bg-surface/95 px-3 py-2 backdrop-blur">
       {items.map(({ tab: t, label, icon: Icon }) => {
         const active = tab === t;
         return (
@@ -22,15 +22,18 @@ export function BottomNavBar() {
             key={t}
             onClick={() => setTab(t)}
             aria-current={active ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-1 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-              active ? "text-primary" : "text-on-surface-variant hover:text-ink"
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full ${
+              active
+                ? "bg-primary-container/60 text-primary font-medium shadow-soft"
+                : "text-on-surface-variant hover:text-ink hover:bg-surface-container-low"
             }`}
           >
-            <Icon size={20} />
-            <span className="font-mono text-label-sm">{label}</span>
+            <Icon size={19} className={active ? "stroke-[2.25px]" : "stroke-[1.75px]"} />
+            <span className="text-[12px] tracking-tight">{label}</span>
           </button>
         );
       })}
     </nav>
   );
 }
+

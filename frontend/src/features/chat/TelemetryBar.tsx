@@ -19,7 +19,8 @@ export function TelemetryBar() {
         {status}
       </span>
       <span>deepseek-v4-flash</span>
-      <span className="ml-auto">旅行规划师</span>
+      <span className="ml-auto">Concierge Daemon</span>
     </div>
   );
 }
+

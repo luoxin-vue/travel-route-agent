@@ -1,10 +1,8 @@
 import { ArrowRight, Bookmark, Map as MapIcon, MapPin, Trash2 } from "lucide-react";
 import { useAppStore } from "../../store/useAppStore";
-import { Card } from "../../components/Card";
 import { SmartImage } from "../../components/SmartImage";
 import type { SavedRoute } from "../../types";
 
-/** Itinerary 无出行日期字段，卡片日期用入库时间。 */
 function formatSavedAt(ts: number): string {
   const d = new Date(ts);
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -22,32 +20,33 @@ export function RouteCard({ route }: { route: SavedRoute }) {
   const { itinerary } = route;
   const stops = itinerary.nodes.filter((n) => n.type !== "transport");
   const summary = (stops.length > 0 ? stops : itinerary.nodes).map((n) => n.name).join(" · ");
-  const firstStop = stops[0]?.name ?? itinerary.nodes[0]?.name ?? "未定地点";
+  const firstStop = stops[0]?.name ?? itinerary.nodes[0]?.name ?? "未知地点";
   const completed = route.status === "completed";
 
   return (
-    <Card className="group flex flex-col overflow-hidden">
-      {/* 封面：底层兜底块 + SmartImage 覆盖（失败自隐藏，布局不塌） */}
-      <div className="relative h-40 overflow-hidden bg-surface-container">
-        <div className="flex h-full items-center justify-center text-on-surface-variant/40">
-          <MapIcon size={28} />
+    <div className="rounded-2xl border border-card-border bg-surface-container-lowest group flex flex-col overflow-hidden shadow-float transition-all hover:shadow-card">
+
+      {/* 封面图 */}
+      <div className="relative h-40 overflow-hidden bg-surface-container-low">
+        <div className="flex h-full items-center justify-center text-on-surface-variant/30">
+          <MapIcon size={32} />
         </div>
         <SmartImage
           src={itinerary.cover_image}
           alt={itinerary.title}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span className="absolute right-2 top-2 rounded-full bg-surface/90 px-2 py-0.5 font-mono text-label-sm text-ink">
+        <span className="absolute right-3 top-3 rounded-full bg-surface/90 backdrop-blur px-3 py-0.5 text-[11px] font-medium text-ink shadow-soft tabular-nums">
           {itinerary.days} 天 · {formatSavedAt(route.savedAt)} 保存
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-4.5">
         <div className="flex items-start gap-2">
-          <h3 className="min-w-0 flex-1 truncate text-headline-md text-ink">{itinerary.title}</h3>
+          <h3 className="min-w-0 flex-1 truncate text-[17px] font-semibold text-ink leading-snug">{itinerary.title}</h3>
           <button
             onClick={() => toggleRouteFavorite(route.id)}
-            className="shrink-0 p-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+            className="shrink-0 p-1 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
             aria-label={route.favorite ? "取消收藏" : "收藏"}
           >
             <Bookmark
@@ -55,7 +54,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
               className={
                 route.favorite
                   ? "fill-primary text-primary"
-                  : "text-on-surface-variant hover:text-ink"
+                  : "text-on-surface-variant/70 hover:text-ink"
               }
             />
           </button>
@@ -65,7 +64,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
                 deleteRoute(route.id);
               }
             }}
-            className="shrink-0 p-0.5 text-on-surface-variant transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded"
+            className="shrink-0 p-1 text-on-surface-variant/60 transition-colors hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-full"
             aria-label="删除路线"
           >
             <Trash2 size={16} />
@@ -74,23 +73,23 @@ export function RouteCard({ route }: { route: SavedRoute }) {
 
         <button
           onClick={() => toggleRouteStatus(route.id)}
-          className={`mt-2 self-start rounded-full px-2 py-0.5 font-mono text-label-sm uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+          className={`mt-2 self-start rounded-full px-3 py-0.5 text-[12px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
             completed
-              ? "bg-teal/10 text-secondary"
-              : "bg-primary/10 text-primary"
+              ? "bg-secondary/15 text-secondary"
+              : "bg-primary-container/80 text-primary"
           }`}
-          aria-label={completed ? "标记为未完成" : "标记为已完成"}
+          aria-label={completed ? "标记为行程中" : "标记为已完成"}
         >
-          {completed ? "已完成 ✓" : "已计划"}
+          {completed ? "已打卡完成 ✓" : "行程计划中"}
         </button>
 
         {summary && (
-          <p className="mb-3 mt-2 line-clamp-2 text-body-md text-on-surface-variant">{summary}</p>
+          <p className="mb-3 mt-2 line-clamp-2 text-[13px] leading-relaxed text-on-surface-variant">{summary}</p>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-outline-variant pt-3">
-          <span className="flex min-w-0 items-center gap-1 font-mono text-label-sm text-on-surface-variant">
-            <MapPin size={14} className="shrink-0" />
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-card-border/60 pt-3 text-[12px]">
+          <span className="flex min-w-0 items-center gap-1 text-on-surface-variant">
+            <MapPin size={14} className="shrink-0 text-primary/70" />
             <span className="truncate">{firstStop}</span>
           </span>
           <button
@@ -99,12 +98,14 @@ export function RouteCard({ route }: { route: SavedRoute }) {
               setActiveRouteId(route.id);
               setTab("plan");
             }}
-            className="flex shrink-0 items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+            className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1.5 font-medium text-on-primary shadow-soft transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            查看详情 <ArrowRight size={14} />
+            查看计划 <ArrowRight size={13} />
           </button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
+
+

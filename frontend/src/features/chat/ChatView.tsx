@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Loader2, Send, ListTree, Map } from "lucide-react";
+import { Loader2, Send, CalendarRange, MapPin, Sparkles, Compass, UtensilsCrossed, Trees } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useAppStore } from "../../store/useAppStore";
 import { streamChat } from "../../lib/api";
@@ -8,11 +8,11 @@ import { ThinkingSteps } from "./ThinkingSteps";
 import { ReasoningBlock } from "./ReasoningBlock";
 import { LogDivider } from "./LogDivider";
 
-/** 空状态的快捷指令（点击直接发送）。 */
+/** 空状态的生活感灵感预设（带舒适图标）。 */
 const PRESETS = [
-  { label: "上海周末2日游", prompt: "帮我规划上海周末2日游，2-3个核心景点" },
-  { label: "成都美食2日", prompt: "帮我规划成都2日游，重点美食和熊猫基地" },
-  { label: "杭州西湖一日", prompt: "帮我规划杭州西湖一日游" },
+  { label: "上海周末漫步", icon: Compass, prompt: "帮我规划上海周末2日游，2-3个核心景点" },
+  { label: "成都美食巡礼", icon: UtensilsCrossed, prompt: "帮我规划成都2日游，重点美食和熊猫基地" },
+  { label: "杭州西湖惬意一日", icon: Trees, prompt: "帮我规划杭州西湖一日游" },
 ];
 
 export function ChatView() {
@@ -84,37 +84,43 @@ export function ChatView() {
 
   const rightStatus = streaming
     ? telemetry.tool
-      ? `执行 ${toolLabel(telemetry.tool)}`
-      : "合成中…"
-    : "安全连接已激活";
+      ? `正在调用 ${toolLabel(telemetry.tool)}`
+      : "生成行程中…"
+    : "随心管家服务已就绪";
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-surface">
       {/* 消息区 */}
-      <div ref={scrollRef} className="terminal-scroll flex-1 space-y-8 overflow-y-auto px-4 pb-6 pt-6">
+      <div ref={scrollRef} className="airy-scroll flex-1 space-y-6 overflow-y-auto px-4 pb-6 pt-4">
         {messages.length === 0 && (
-          <div className="flex flex-col gap-2">
-            <LogDivider label="系统初始化" side="left" />
-            <div className="max-w-2xl rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-              <h2 className="mb-2 flex items-center gap-2 font-mono text-code-md text-primary">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-                旅行规划师 已就绪
-              </h2>
-              <p className="mb-4 font-mono text-code-md leading-relaxed text-on-surface">
-                已建立与高德地图服务的连接
-                <br />
-                准备为你合成行程。想先去哪里？
+          <div className="flex flex-col gap-3 pt-2">
+            <div className="mx-auto max-w-xl rounded-2xl border border-card-border/80 bg-surface-container-lowest p-6 shadow-float">
+              <div className="mb-3 flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-primary">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <h2 className="text-body-md font-semibold text-ink">随心行程管家已就绪</h2>
+                  <p className="text-[12px] text-on-surface-variant/80">提供精致数据与高德地图联动规划</p>
+                </div>
+              </div>
+              <p className="mb-5 text-body-md text-on-surface leading-relaxed">
+                输入您的目的地、出行天数或偏好（如美食、休闲、文化），为您生成结构化行程：
               </p>
-              <div className="flex flex-wrap gap-2">
-                {PRESETS.map((p) => (
-                  <button
-                    key={p.label}
-                    onClick={() => send(p.prompt)}
-                    className="border border-transparent bg-secondary-container px-4 py-2 font-mono text-label-sm text-ink transition-all hover:border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1"
-                  >
-                    {p.label}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2.5">
+                {PRESETS.map((p) => {
+                  const Icon = p.icon;
+                  return (
+                    <button
+                      key={p.label}
+                      onClick={() => send(p.prompt)}
+                      className="flex items-center gap-1.5 rounded-full border border-card-border bg-surface-container-low/70 px-4 py-2 text-[13px] font-medium text-ink transition-all hover:border-primary/50 hover:bg-primary-container/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <Icon size={14} className="text-primary" />
+                      {p.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -124,18 +130,19 @@ export function ChatView() {
           const isLast = i === messages.length - 1;
           if (m.role === "user") {
             return (
-              <div key={i} className="flex flex-col items-end gap-2">
-                <LogDivider label="用户请求" side="right" />
-                <div className="max-w-[80%] rounded-lg bg-primary p-4 text-body-md text-on-primary">
+              <div key={i} className="flex flex-col items-end gap-1.5">
+                <LogDivider label="我的旅行意图" side="right" />
+                <div className="max-w-[82%] rounded-2xl rounded-tr-xs bg-primary px-4 py-3 text-body-md text-on-primary shadow-soft">
                   {m.content}
                 </div>
               </div>
             );
           }
           return (
-            <div key={i} className="flex flex-col gap-2">
-              <LogDivider label={isLast && streaming ? "正在合成行程" : "旅行规划师"} side="left" />
-              <div className="max-w-3xl rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+            <div key={i} className="flex flex-col gap-1.5">
+              <LogDivider label={isLast && streaming ? "规划行程中" : "随心管家"} side="left" />
+
+              <div className="max-w-3xl rounded-2xl rounded-tl-xs border border-card-border bg-surface-container-lowest p-5 shadow-float">
                 <ReasoningBlock text={m.reasoning ?? ""} active={isLast && streaming && !m.content} />
                 <ThinkingSteps steps={m.steps ?? []} />
                 {isLast &&
@@ -143,31 +150,31 @@ export function ChatView() {
                   !m.reasoning &&
                   !m.content &&
                   (m.steps?.length ?? 0) === 0 && (
-                    <div className="flex items-center gap-2 font-mono text-label-sm text-on-surface-variant">
-                      <Loader2 size={12} className="animate-spin text-primary" />
-                      正在思考…
+                    <div className="flex items-center gap-2 text-label-sm text-on-surface-variant">
+                      <Loader2 size={14} className="animate-spin text-primary" />
+                      正在为您精心规划…
                     </div>
                   )}
                 {m.content && (
-                  <div className="text-body-md leading-relaxed [&_li]:ml-4 [&_li]:list-disc [&_p]:my-1 [&_ul]:my-1">
+                  <div className="text-body-md leading-relaxed text-ink [&_li]:ml-4 [&_li]:list-disc [&_p]:my-1.5 [&_ul]:my-1.5">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                 )}
-                {/* 建议操作：行程生成后给出导航入口（参考设计稿） */}
+                {/* 建议操作：行程生成后给出导航入口 */}
                 {isLast && !streaming && itinerary && m.content && (
-                  <div className="mt-4 flex items-center gap-2 border-t border-outline-variant pt-4">
-                    <span className="font-mono text-label-sm text-on-surface-variant">建议操作:</span>
+                  <div className="mt-4 flex items-center gap-2 border-t border-card-border/80 pt-3.5">
+                    <span className="text-[12px] font-medium text-on-surface-variant">为您生成：</span>
                     <button
                       onClick={() => setTab("plan")}
-                      className="flex items-center gap-1 border border-ink px-3 py-1.5 font-mono text-label-sm text-ink transition-colors hover:bg-ink hover:text-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className="flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[12px] font-medium text-on-primary shadow-soft transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      <ListTree size={14} /> 查看计划
+                      <CalendarRange size={14} /> 查看完整计划
                     </button>
                     <button
                       onClick={() => setTab("map")}
-                      className="flex items-center gap-1 border border-outline px-3 py-1.5 font-mono text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className="flex items-center gap-1.5 rounded-full border border-card-border bg-surface-container-low px-3.5 py-1.5 text-[12px] font-medium text-ink transition-colors hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      <Map size={14} /> 渲染地图
+                      <MapPin size={14} className="text-secondary" /> 查看地图路线
                     </button>
                   </div>
                 )}
@@ -177,34 +184,34 @@ export function ChatView() {
         })}
       </div>
 
-      {/* 终端风输入区 + 遥测 */}
-      <div className="border-t border-outline-variant bg-surface px-4 pb-3 pt-3">
+      {/* 浮动空气感搜索输入岛 */}
+      <div className="border-t border-card-border/60 bg-surface/80 px-4 pb-3 pt-3 backdrop-blur">
         <div className="mx-auto max-w-3xl">
-          <div className="flex items-center rounded border border-outline-variant bg-surface-container-lowest transition-colors focus-within:border-primary">
-            <span className="animate-pulse px-4 font-mono font-bold text-primary">&gt;</span>
+          <div className="flex items-center rounded-full border border-card-border bg-surface-container-lowest px-4 py-1.5 shadow-float transition-colors focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/20">
+            <Compass size={18} className="mr-2.5 text-primary shrink-0" />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               disabled={streaming}
-              placeholder="接下来去哪？"
+              placeholder="想去哪里？输入目的地或天数偏好..."
               aria-label="输入旅行意图或下一站"
-              className="flex-1 border-none bg-transparent py-3 font-mono text-code-md text-ink outline-none placeholder:text-on-surface-variant/40"
+              className="flex-1 border-none bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-on-surface-variant/50"
             />
             <button
               onClick={() => send()}
               disabled={streaming || !input.trim()}
-              className="p-3 text-on-surface-variant transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:opacity-40"
+              className="ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:opacity-90 active:scale-95 disabled:bg-surface-container-high disabled:text-on-surface-variant/40"
               aria-label="发送"
             >
-              <Send size={18} />
+              <Send size={16} />
             </button>
           </div>
-          <div className="mt-2 flex justify-between px-1 font-mono text-label-sm uppercase text-on-surface-variant/50">
-            <span>deepseek-v4-flash</span>
+          <div className="mt-2 flex justify-between px-3 text-[11px] font-medium text-on-surface-variant/60">
+            <span>Concierge Agent v2.0</span>
             <span className="flex items-center gap-1.5">
               {streaming && (
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-container" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
               )}
               {rightStatus}
             </span>
@@ -214,3 +221,4 @@ export function ChatView() {
     </div>
   );
 }
+

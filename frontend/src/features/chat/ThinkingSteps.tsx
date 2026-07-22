@@ -1,25 +1,30 @@
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Compass } from "lucide-react";
 import type { ThinkingStep } from "../../types";
 import { toolLabel } from "../../lib/labels";
 
-/** 思考/行动过程：把 Agent 的工具调用实时显示为步骤，缓解等待时的「卡住感」。 */
+/** 思考/行动过程：把 Agent 的工具调用实时显示为高易读步骤。 */
 export function ThinkingSteps({ steps }: { steps: ThinkingStep[] }) {
   if (steps.length === 0) return null;
 
   return (
-    <div className="mb-2 rounded-md border border-card-border bg-surface-container-low p-2">
-      <p className="mb-1.5 font-mono text-label-sm text-on-surface-variant">思考过程</p>
-      <ol className="space-y-1">
+    <div className="mb-3 rounded-xl border border-card-border/70 bg-surface-container-low/50 p-3">
+      <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-on-surface-variant">
+        <Compass size={13} className="text-secondary" />
+        <span>路线规划执行步骤</span>
+      </div>
+      <ol className="space-y-1.5">
         {steps.map((s) => (
-          <li key={s.id} className="flex items-center gap-2 font-mono text-label-sm">
+          <li key={s.id} className="flex items-center gap-2 text-[13px]">
             {s.status === "done" ? (
-              <Check size={12} className="shrink-0 text-secondary" />
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-secondary">
+                <Check size={11} className="stroke-[2.5]" />
+              </span>
             ) : (
-              <Loader2 size={12} className="shrink-0 animate-spin text-primary" />
+              <Loader2 size={13} className="shrink-0 animate-spin text-primary" />
             )}
-            <span className={s.status === "done" ? "text-on-surface-variant" : "text-ink"}>
+            <span className={s.status === "done" ? "text-on-surface-variant" : "font-medium text-ink"}>
               {toolLabel(s.tool)}
-              {s.detail ? <span className="text-on-surface-variant">：{s.detail}</span> : null}
+              {s.detail ? <span className="text-on-surface-variant/80 font-normal"> · {s.detail}</span> : null}
             </span>
           </li>
         ))}
@@ -27,3 +32,4 @@ export function ThinkingSteps({ steps }: { steps: ThinkingStep[] }) {
     </div>
   );
 }
+
