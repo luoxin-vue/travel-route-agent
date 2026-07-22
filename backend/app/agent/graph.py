@@ -5,6 +5,7 @@ from langchain.agents import create_agent
 
 from app.agent.llm import build_llm
 from app.agent.mcp_tools import load_amap_tools
+from app.agent.intl_tools import load_intl_tools
 from app.agent.prompts import SYSTEM_PROMPT
 from app.agent.schema import Itinerary
 
@@ -26,8 +27,9 @@ async def get_agent():
     global _agent
     if _agent is None:
         amap_tools = await load_amap_tools()
+        intl_tools = load_intl_tools()
         llm = build_llm()
-        agent_tools = list(amap_tools) + [emit_itinerary]
+        agent_tools = list(amap_tools) + list(intl_tools) + [emit_itinerary]
         
         _agent = create_agent(
             model=llm,
