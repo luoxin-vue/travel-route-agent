@@ -30,12 +30,12 @@ export function RouteCard({ route }: { route: SavedRoute }) {
           alt={itinerary.title}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span className="absolute right-3 top-3 rounded-full bg-surface/90 backdrop-blur px-3 py-0.5 text-[11px] font-medium text-ink shadow-soft tabular-nums">
+        <span className="absolute right-3 top-3 rounded-full border border-card-border/80 bg-surface-container-lowest/90 px-3 py-1 text-[11px] font-medium text-ink shadow-soft backdrop-blur tabular-nums">
           {itinerary.days} 天 · {new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" }).format(route.savedAt)} 保存
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-4.5">
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start gap-2">
           <h3 className="min-w-0 flex-1 truncate text-[17px] font-semibold text-ink leading-snug">{itinerary.title}</h3>
           <button

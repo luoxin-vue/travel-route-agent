@@ -69,14 +69,14 @@ export function LibraryView() {
           <div className="relative mt-4">
             <Search
               size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/60"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant"
             />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜索路线名称或目的地…"
               aria-label="搜索已保存的旅行路线或景点地点"
-              className="w-full rounded-full border border-card-border bg-surface-container-lowest py-2.5 pl-10 pr-4 text-[14px] text-ink outline-none transition-all placeholder:text-on-surface-variant/50 focus:border-primary/70 focus:ring-2 focus:ring-primary/20 shadow-soft"
+              className="w-full rounded-full border border-card-border bg-surface-container-lowest py-2.5 pl-10 pr-4 text-[14px] text-ink outline-none transition-all placeholder:text-on-surface-variant/70 focus:border-primary/70 focus:ring-2 focus:ring-primary/20 shadow-soft"
             />
           </div>
 
