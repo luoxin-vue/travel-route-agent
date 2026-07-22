@@ -191,16 +191,20 @@ export function ChatView() {
           {/* 搜索岛上方的灵感 Preset 快捷标签 */}
           <div className="no-scrollbar mb-2 flex items-center gap-2 overflow-x-auto">
             <span className="shrink-0 text-[11px] font-medium text-on-surface-variant/70">快速指令:</span>
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                onClick={() => send(p.prompt)}
-                disabled={streaming}
-                className="shrink-0 rounded-full border border-card-border/80 bg-surface-container-lowest px-3 py-1 text-[12px] font-medium text-ink shadow-soft transition-all hover:border-primary/50 hover:bg-primary-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-              >
-                {p.label}
-              </button>
-            ))}
+            {PRESETS.map((p) => {
+              const Icon = p.icon;
+              return (
+                <button
+                  key={p.label}
+                  onClick={() => send(p.prompt)}
+                  disabled={streaming}
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-card-border/80 bg-surface-container-lowest px-3 py-1 text-[12px] font-medium text-ink shadow-soft transition-all hover:border-primary/50 hover:bg-primary-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+                >
+                  <Icon size={13} className="text-primary" />
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex items-center rounded-full border border-card-border bg-surface-container-lowest px-4 py-1.5 shadow-float transition-colors focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/20">
