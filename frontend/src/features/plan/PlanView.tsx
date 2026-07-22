@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import type { ItineraryNode } from "../../types";
 import { isStopNode } from "../../types";
@@ -8,13 +8,29 @@ import { NodeEditModal } from "./NodeEditModal";
 import { EmptyState } from "../../components/EmptyState";
 
 export function PlanView() {
-  const itinerary = useAppStore((s) => s.itinerary);
-  const activeRouteId = useAppStore((s) => s.activeRouteId);
-  const savedRoutes = useAppStore((s) => s.savedRoutes);
-  const toggleNodeComplete = useAppStore((s) => s.toggleNodeComplete);
-  const updateNode = useAppStore((s) => s.updateNode);
-  const addNode = useAppStore((s) => s.addNode);
-  const deleteNode = useAppStore((s) => s.deleteNode);
+  const itinerary = useAppStore((state) => state.itinerary);
+  const activeRouteId = useAppStore((state) => state.activeRouteId);
+  const savedRoutes = useAppStore((state) => state.savedRoutes);
+  const toggleNodeComplete = useAppStore((state) => state.toggleNodeComplete);
+  const updateNode = useAppStore((state) => state.updateNode);
+  const addNode = useAppStore((state) => state.addNode);
+  const deleteNode = useAppStore((state) => state.deleteNode);
+
+  // 页面刷新后 itinerary 为 null 但 activeRouteId 已持久化，自动从路线库恢复
+  useEffect(() => {
+    if (!itinerary && activeRouteId) {
+      const restored = savedRoutes.find((route) => route.id === activeRouteId);
+      if (restored) {
+        useAppStore.setState({ itinerary: restored.itinerary });
+      } else {
+        useAppStore.setState({ activeRouteId: null });
+      }
+    }
+    // 运行时清理：活动路线被删除后清除已失效的 activeRouteId
+    if (activeRouteId && itinerary && !savedRoutes.some((route) => route.id === activeRouteId)) {
+      useAppStore.setState({ activeRouteId: null });
+    }
+  }, [itinerary, activeRouteId, savedRoutes]);
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

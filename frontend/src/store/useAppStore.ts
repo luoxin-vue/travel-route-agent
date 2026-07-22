@@ -68,14 +68,13 @@ function newRouteId(): string {
     : `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/** 辅助函数：判断行程的所有非交通节点是否已被打卡完成。 */
 function checkAllStopsCompleted(nodes: ItineraryNode[], completedKeys: string[]): boolean {
   const completedKeySet = new Set(completedKeys);
   const stopKeys = nodes.filter(isStopNode).map(nodeKey);
   return stopKeys.length > 0 && stopKeys.every((key) => completedKeySet.has(key));
 }
 
-/** 辅助函数：同步更新当前 Itinerary 节点并重新清洗关联路线库状态。 */
+/** 编辑操作必须同时更新 itinerary 与 savedRoutes，避免两个数据源分叉导致打卡状态漂移。 */
 function syncItineraryNodes(
   state: AppState,
   nodesUpdater: (nodes: ItineraryNode[]) => ItineraryNode[],
@@ -86,7 +85,7 @@ function syncItineraryNodes(
   const newKeys = new Set(newNodes.map(nodeKey));
 
   const newSavedRoutes = state.savedRoutes.map((route) => {
-    const isTarget = route.id === state.activeRouteId || routeSignature(route.itinerary) === routeSignature(newItinerary);
+    const isTarget = route.id === state.activeRouteId;
     if (!isTarget) return route;
 
     const cleanedCompleted = route.completedNodes.filter((key) => newKeys.has(key));
@@ -146,25 +145,27 @@ export const useAppStore = create<AppState>()(
           })),
         })),
       setItinerary: (itinerary) => set({ itinerary }),
-      // 自动入库：同签名（标题|天数）已存在则更新行程内容并保留用户的状态/收藏标记，
-      // 同时清洗 completedNodes，只保留新 nodes 中仍能匹配到的键。
+      // 避免旧打卡数据污染新计划：同签名路线更新时重置已完成节点。
       saveRoute: (itinerary) =>
         set((state) => {
           const sig = routeSignature(itinerary);
           const existing = state.savedRoutes.find((route) => routeSignature(route.itinerary) === sig);
           if (existing) {
-            const newKeys = new Set(itinerary.nodes.map(nodeKey));
-            const cleaned = existing.completedNodes.filter((key) => newKeys.has(key));
             return {
+              activeRouteId: existing.id,
               savedRoutes: state.savedRoutes.map((route) =>
-                route.id === existing.id ? { ...route, itinerary, savedAt: Date.now(), completedNodes: cleaned } : route,
+                route.id === existing.id
+                  ? { ...route, itinerary, savedAt: Date.now(), completedNodes: [], status: "planned" as const }
+                  : route,
               ),
             };
           }
+          const routeId = newRouteId();
           return {
+            activeRouteId: routeId,
             savedRoutes: [
               {
-                id: newRouteId(),
+                id: routeId,
                 savedAt: Date.now(),
                 status: "planned" as const,
                 favorite: false,
@@ -177,14 +178,18 @@ export const useAppStore = create<AppState>()(
         }),
       toggleRouteStatus: (routeId) =>
         set((state) => ({
-          savedRoutes: state.savedRoutes.map((route) =>
-            route.id === routeId
-              ? {
-                  ...route,
-                  status: route.status === "planned" ? ("completed" as const) : ("planned" as const),
-                }
-              : route,
-          ),
+          savedRoutes: state.savedRoutes.map((route) => {
+            if (route.id !== routeId) return route;
+            const isCompleting = route.status === "planned";
+            const allStopKeys = route.itinerary.nodes.filter(isStopNode).map(nodeKey);
+            return {
+              ...route,
+              status: isCompleting ? ("completed" as const) : ("planned" as const),
+              completedNodes: isCompleting
+                ? [...new Set([...route.completedNodes, ...allStopKeys])]
+                : [],
+            };
+          }),
         })),
       toggleRouteFavorite: (routeId) =>
         set((state) => ({
@@ -193,7 +198,10 @@ export const useAppStore = create<AppState>()(
           ),
         })),
       deleteRoute: (routeId) =>
-        set((state) => ({ savedRoutes: state.savedRoutes.filter((route) => route.id !== routeId) })),
+        set((state) => ({
+          savedRoutes: state.savedRoutes.filter((route) => route.id !== routeId),
+          activeRouteId: state.activeRouteId === routeId ? null : state.activeRouteId,
+        })),
       setActiveRouteId: (activeRouteId) => set({ activeRouteId }),
       toggleNodeComplete: (routeId, nodeMatchKey) =>
         set((state) => ({
@@ -230,7 +238,7 @@ export const useAppStore = create<AppState>()(
       // 持久化路线库与旅行偏好设置。
       name: "travel-route-library",
       version: 1,
-      partialize: (state) => ({ savedRoutes: state.savedRoutes, travelPreferences: state.travelPreferences }),
+      partialize: (state) => ({ savedRoutes: state.savedRoutes, travelPreferences: state.travelPreferences, activeRouteId: state.activeRouteId }),
     },
   ),
 );
