@@ -13,7 +13,7 @@ function transport(): ItineraryNode {
 }
 
 describe("computeDistanceHint", () => {
-  // --- 首站：距下站 ---
+  // --- 首站：下一站 ---
 
   it("首站 + 有 next_distance_km + 无 protocol → 按阈值自动判断（< 1.5km 步行）", () => {
     const nodes = [
@@ -21,7 +21,7 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("800m");
     expect(hint).toContain("步行");
   });
@@ -32,7 +32,7 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("3.2 km");
     expect(hint).toContain("驾车");
   });
@@ -43,7 +43,7 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("步行");
     expect(hint).not.toContain("建议");
   });
@@ -54,21 +54,21 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("建议驾车");
     expect(hint).toContain("步行");
   });
 
-  // --- 中间站：距下站 ---
+  // --- 中间站：下一站 ---
 
-  it("中间站 + 自己有 next_distance_km → 展示距下站", () => {
+  it("中间站 + 自己有 next_distance_km → 展示下一站", () => {
     const nodes = [
       stop({ next_distance_km: 1.0 }),
       stop({ next_distance_km: 2.5 }),
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 1);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("2.5 km");
   });
 
@@ -79,24 +79,24 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 1);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("步行");
     // 0.9 km ÷ 4.5 km/h × 60 = 12 分钟
     expect(hint).toContain("12");
   });
 
-  it("三站全链路 — 首站距下站，末站返回 null", () => {
+  it("三站全链路 — 首站下一站，末站返回 null", () => {
     const nodes = [
       stop({ next_distance_km: 1.0 }),
       stop({ next_distance_km: 3.0 }),
       stop(),
     ];
     const firstHint = computeDistanceHint(nodes, 0);
-    expect(firstHint).toContain("距下站");
+    expect(firstHint).toContain("下一站 测试点");
     expect(firstHint).toContain("1 km");
 
     const midHint = computeDistanceHint(nodes, 1);
-    expect(midHint).toContain("距下站");
+    expect(midHint).toContain("下一站 测试点");
     expect(midHint).toContain("3 km");
 
     expect(computeDistanceHint(nodes, 2)).toBeNull();
@@ -130,7 +130,7 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("1200");
     expect(hint).not.toContain("分钟");
   });
@@ -144,7 +144,7 @@ describe("computeDistanceHint", () => {
     ];
     const hint = computeDistanceHint(nodes, 0);
     expect(hint).not.toBeNull();
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
   });
 
   it("FLIGHT 无距离数据时只显示方向不估计分钟", () => {
@@ -153,7 +153,7 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toBe("距下站");
+    expect(hint).toBe("下一站 测试点");
     expect(hint).not.toContain("分钟");
   });
 
@@ -164,7 +164,7 @@ describe("computeDistanceHint", () => {
       stop(),
     ];
     const hint0 = computeDistanceHint(nodes, 0);
-    expect(hint0).toBe("距下站地铁约 15 分钟");
+    expect(hint0).toBe("下一站 测试点 · 地铁约 15 分钟");
 
     // 末站返回 null
     expect(computeDistanceHint(nodes, 2)).toBeNull();
@@ -178,9 +178,9 @@ describe("computeDistanceHint", () => {
       transport(),
       stop(),
     ];
-    // 首站 (stopIdx=0)：距下站，读自己的 4.0km
+    // 首站 (stopIdx=0)：下一站，读自己的 4.0km
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).toContain("距下站");
+    expect(hint).toContain("下一站 测试点");
     expect(hint).toContain("4 km");
 
     // 末站 (stopIdx=1)：返回 null

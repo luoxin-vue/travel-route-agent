@@ -27,6 +27,7 @@ export function ChatView() {
     appendReasoning,
     pushStep,
     resolveStep,
+    resolveAllSteps,
     setItinerary,
     saveRoute,
     setTelemetry,
@@ -68,6 +69,7 @@ export function ChatView() {
           setTab("plan");
         },
         onDone: () => {
+          resolveAllSteps();
           setStreaming(false);
           setTelemetry({ tool: null, status: "idle" });
         },

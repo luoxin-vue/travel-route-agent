@@ -25,6 +25,7 @@ interface AppState {
   appendReasoning: (text: string) => void;
   pushStep: (step: ThinkingStep) => void;
   resolveStep: (id: string) => void;
+  resolveAllSteps: () => void;
   setItinerary: (targetItinerary: Itinerary) => void;
   saveRoute: (targetItinerary: Itinerary) => void;
   toggleRouteStatus: (id: string) => void;
@@ -141,6 +142,15 @@ export const useAppStore = create<AppState>()(
             ...msg,
             steps: (msg.steps ?? []).map((step) =>
               step.id === stepId ? { ...step, status: "done" as const } : step,
+            ),
+          })),
+        })),
+      resolveAllSteps: () =>
+        set((state) => ({
+          messages: updateLastAssistant(state.messages, (msg) => ({
+            ...msg,
+            steps: (msg.steps ?? []).map((step) =>
+              step.status === "running" ? { ...step, status: "done" as const } : step,
             ),
           })),
         })),

@@ -80,14 +80,14 @@ export function computeDistanceHint(
 
   if (distKm == null) {
     if (current.protocol?.toUpperCase() === "FLIGHT") {
-      return "距下站";
+      return `下一站 ${nextStop.name}`;
     }
     const transportBetween = findTransportBetween(allNodes, current, nextStop);
     const mode = transportBetween?.protocol ? protocolLabel(transportBetween.protocol) : "";
-    return `距下站${mode}约 15 分钟`;
+    return `下一站 ${nextStop.name} · ${mode}约 15 分钟`;
   }
 
-  return buildHintText(distKm, "距下站", current.protocol);
+  return buildHintText(distKm, `下一站 ${nextStop.name}`, current.protocol);
 }
 
 function resolveDistance(from: ItineraryNode, to: ItineraryNode): number | null {
