@@ -11,11 +11,15 @@ import {
   Navigation,
   CalendarRange,
   Check,
+  Clock,
+  Sparkles,
+  Route,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Itinerary, ItineraryNode } from "../../types";
 import { nodeKey } from "../../types";
 import { SmartImage } from "../../components/SmartImage";
+import { computeDistanceHint } from "../../lib/distance-hint";
 
 /** 行程节点的 protocol（方式）英文 → 中文，未命中回退原值。 */
 const PROTOCOL_LABELS: Record<string, string> = {
@@ -64,36 +68,50 @@ function protocolIcon(protocol?: string | null): LucideIcon {
 }
 
 /** 交通衔接：精致轻柔连接块。 */
-function TransportLink({ node }: { node: ItineraryNode }) {
+function TransportLink({ node, onEdit }: { node: ItineraryNode; onEdit?: () => void }) {
   const Icon = protocolIcon(node.protocol);
   const label = protocolLabel(node.protocol);
   return (
     <div className="relative mb-5 pl-10">
-      <div className="flex items-center gap-2.5 rounded-xl bg-surface-container-low/40 px-3.5 py-2 text-[13px] text-on-surface-variant">
+      <div className="group flex items-center gap-2.5 rounded-xl bg-surface-container-low/40 px-3.5 py-2 text-[13px] text-on-surface-variant hover:bg-surface-container/70 transition-all">
         <Icon size={16} className="text-secondary shrink-0" />
         <span className="font-medium text-ink">{node.name}</span>
         {label ? <span className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface-variant">{label}</span> : null}
         {node.start_time ? <span className="ml-auto text-[12px] tabular-nums text-on-surface-variant/70">{node.start_time}</span> : null}
+        {onEdit ? (
+          <button
+            onClick={onEdit}
+            className="ml-2 hidden rounded-full border border-card-border bg-surface px-2 py-0.5 text-[11px] font-medium text-on-surface-variant hover:text-ink group-hover:inline-block transition-all"
+          >
+            编辑
+          </button>
+        ) : null}
       </div>
     </div>
   );
 }
 
+
+
 /** 站点卡片（活动 / 住宿）。过夜住宿顶部带陶土暖色小标签。 */
 function StopCard({
   node,
   completed,
+  distanceHint,
   onToggle,
+  onEdit,
 }: {
   node: ItineraryNode;
   completed?: boolean;
+  distanceHint?: string | null;
   onToggle?: () => void;
+  onEdit?: () => void;
 }) {
   const overnight = node.type === "lodging";
 
   return (
     <div className="relative mb-6 pl-10">
-      {/* 节点圆点：完成=鼠尾草绿勾，过夜=陶土暖色，普通=轻柔环，精确对齐 left-2 轴心 */ }
+      {/* 节点圆点：完成=鼠尾草绿勾，过夜=陶土暖色，普通=轻柔环，精确对齐 left-2 轴心 */}
       <span
         className={`absolute left-2 top-3.5 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full transition-all ${
           completed
@@ -122,7 +140,10 @@ function StopCard({
             <div />
           )}
           <div className="flex shrink-0 gap-1.5">
-            <button className="rounded-full border border-card-border bg-surface-container-low/70 px-3 py-1 text-[12px] font-medium text-on-surface-variant hover:bg-surface-container hover:text-ink transition-all">
+            <button
+              onClick={onEdit}
+              className="rounded-full border border-card-border bg-surface-container-low/70 px-3 py-1 text-[12px] font-medium text-on-surface-variant hover:bg-surface-container hover:text-ink transition-all"
+            >
               编辑
             </button>
             {onToggle ? (
@@ -154,35 +175,56 @@ function StopCard({
           />
         )}
 
-        {node.notes && <p className="mb-3 text-[14px] leading-relaxed text-on-surface-variant">{node.notes}</p>}
-
         {overnight && (
           <span className="mb-3 inline-block rounded-full bg-primary-container/70 px-3 py-0.5 text-[12px] font-medium text-primary">
             住宿预订
           </span>
         )}
 
-        {/* 元数据行：坐标 / 方式 / 预约号 */}
+        {/* 元数据行：距上站描述 / 区域描述 / 建议时长 / 方式 / 预约号 */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-card-border/60 pt-3 text-[12px] text-on-surface-variant">
-          {node.lng != null && node.lat != null && (
-            <span className="flex items-center gap-1 tabular-nums">
-              <MapPin size={14} className="text-primary/70" />
-              {node.lat.toFixed(4)}° N, {node.lng.toFixed(4)}° E
+          {distanceHint && (
+            <span className="flex items-center gap-1">
+              <Route size={14} className="text-primary shrink-0" />
+              <span className="font-medium text-ink/90">{distanceHint}</span>
+            </span>
+          )}
+          {node.location_summary && (
+            <span className="flex items-center gap-1">
+              <MapPin size={14} className="text-primary/70 shrink-0" />
+              <span>{node.location_summary}</span>
+            </span>
+          )}
+          {node.duration && (
+            <span className="flex items-center gap-1">
+              <Clock size={14} className="text-secondary shrink-0" />
+              <span>{node.duration}</span>
             </span>
           )}
           {node.protocol && (
             <span className="flex items-center gap-1">
-              <Navigation size={14} className="text-secondary" />
+              <Navigation size={14} className="text-secondary shrink-0" />
               {protocolLabel(node.protocol)}
             </span>
           )}
           {node.booking_id && (
             <span className="flex items-center gap-1 tabular-nums">
-              <BedDouble size={14} className="text-on-surface-variant" />
+              <BedDouble size={14} className="text-on-surface-variant shrink-0" />
               预约号: {node.booking_id}
             </span>
           )}
         </div>
+
+        {/* 底部游玩建议与小贴士卡片 */}
+        {node.notes && (
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary-container/30 p-3 text-[13px] leading-relaxed text-ink">
+            <Sparkles size={16} className="mt-0.5 shrink-0 text-primary" />
+            <div>
+              <span className="font-semibold text-primary">游玩建议与小贴士：</span>
+              <span className="text-ink/90">{node.notes}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -193,10 +235,14 @@ export function RouteTimeline({
   itinerary,
   completedNodes,
   onToggleNode,
+  onEditNode,
+  onAddNode,
 }: {
   itinerary: Itinerary;
   completedNodes?: string[];
   onToggleNode?: (key: string) => void;
+  onEditNode?: (index: number) => void;
+  onAddNode?: () => void;
 }) {
   const completedSet = new Set(completedNodes ?? []);
 
@@ -213,20 +259,25 @@ export function RouteTimeline({
 
         {itinerary.nodes.map((node, i) =>
           node.type === "transport" ? (
-            <TransportLink key={i} node={node} />
+            <TransportLink key={i} node={node} onEdit={onEditNode ? () => onEditNode(i) : undefined} />
           ) : (
             <StopCard
               key={i}
               node={node}
               completed={completedSet.has(nodeKey(node))}
+              distanceHint={computeDistanceHint(itinerary.nodes, i)}
               onToggle={onToggleNode ? () => onToggleNode(nodeKey(node)) : undefined}
+              onEdit={onEditNode ? () => onEditNode(i) : undefined}
             />
           ),
         )}
 
         {/* 添加节点入口 */}
         <div className="relative pl-10">
-          <button className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-card-border bg-surface-container-low/40 p-4 transition-all hover:border-primary/50 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          <button
+            onClick={onAddNode}
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-card-border bg-surface-container-low/40 p-4 transition-all hover:border-primary/50 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
             <Plus size={18} className="text-on-surface-variant transition-colors group-hover:text-primary" />
             <span className="text-[14px] font-medium text-on-surface-variant transition-colors group-hover:text-primary">
               添加新游玩节点
@@ -237,4 +288,3 @@ export function RouteTimeline({
     </section>
   );
 }
-

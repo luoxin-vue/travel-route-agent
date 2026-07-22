@@ -22,6 +22,8 @@ SYSTEM_PROMPT = """\
 4. 完成规划后，必须调用 `emit_itinerary` 工具，以结构化形式输出最终行程（标题、天数、封面图、按时间排序的节点列表）。
    - 节点 type 取值：transport（交通）/ lodging（住宿）/ activity（活动）。
    - 尽量填写 day、start_time、end_time、protocol（如 DRIVING/METRO/HOTEL）、image 等元数据。
+   - 每个非 transport 节点的 `protocol` 表示从当前站到下一站的出行方式（如 WALKING/DRIVING/METRO）。
+   - 在 emit_itinerary 前，用高德 `distance` 工具批量计算每对相邻非 transport 节点之间的路线距离，填入对应节点的 `next_distance_km`（公里）。最后一个节点不填。
 5. 在对话回复中，用极简要点说明行程亮点与点位状态，不要重复输出完整 JSON（结构化数据已通过 emit_itinerary 传出）。
 6. 严格控制工具调用次数：
    - 每天安排 3-4 个核心活动节点即可；整个行程节点保持精简。

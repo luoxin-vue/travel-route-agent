@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ChatMessage, Itinerary, SavedRoute, Tab, ThinkingStep } from "../types";
-import { isStopNode, nodeKey } from "../types";
+import type { ChatMessage, Itinerary, ItineraryNode, SavedRoute, Tab, ThinkingStep, TravelPreferences } from "../types";
+import { DEFAULT_TRAVEL_PREFERENCES, isStopNode, nodeKey } from "../types";
 
 interface Telemetry {
   tool: string | null; // 当前/最近运行的工具名
@@ -17,6 +17,7 @@ interface AppState {
   activeRouteId: string | null;
   telemetry: Telemetry;
   streaming: boolean;
+  travelPreferences: TravelPreferences;
 
   setTab: (t: Tab) => void;
   addMessage: (m: ChatMessage) => void;
@@ -33,6 +34,16 @@ interface AppState {
   toggleNodeComplete: (routeId: string, key: string) => void;
   setTelemetry: (t: Telemetry) => void;
   setStreaming: (b: boolean) => void;
+
+  // 新增：节点编辑、新增与删除
+  updateNode: (index: number, node: ItineraryNode) => void;
+  addNode: (node: ItineraryNode) => void;
+  deleteNode: (index: number) => void;
+
+  // 新增：偏好设置与会话/路线库重置
+  updatePreferences: (prefs: Partial<TravelPreferences>) => void;
+  clearMessages: () => void;
+  resetSavedRoutes: () => void;
 }
 
 function updateLastAssistant(
@@ -57,6 +68,41 @@ function newRouteId(): string {
     : `r-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** 辅助函数：判断行程的所有非交通节点是否已被打卡完成。 */
+function checkAllStopsCompleted(nodes: ItineraryNode[], completedKeys: string[]): boolean {
+  const completedKeySet = new Set(completedKeys);
+  const stopKeys = nodes.filter(isStopNode).map(nodeKey);
+  return stopKeys.length > 0 && stopKeys.every((key) => completedKeySet.has(key));
+}
+
+/** 辅助函数：同步更新当前 Itinerary 节点并重新清洗关联路线库状态。 */
+function syncItineraryNodes(
+  state: AppState,
+  nodesUpdater: (nodes: ItineraryNode[]) => ItineraryNode[],
+): Partial<AppState> {
+  if (!state.itinerary) return {};
+  const newNodes = nodesUpdater(state.itinerary.nodes);
+  const newItinerary: Itinerary = { ...state.itinerary, nodes: newNodes };
+  const newKeys = new Set(newNodes.map(nodeKey));
+
+  const newSavedRoutes = state.savedRoutes.map((route) => {
+    const isTarget = route.id === state.activeRouteId || routeSignature(route.itinerary) === routeSignature(newItinerary);
+    if (!isTarget) return route;
+
+    const cleanedCompleted = route.completedNodes.filter((key) => newKeys.has(key));
+    const allDone = checkAllStopsCompleted(newNodes, cleanedCompleted);
+
+    return {
+      ...route,
+      itinerary: newItinerary,
+      completedNodes: cleanedCompleted,
+      status: allDone ? ("completed" as const) : ("planned" as const),
+    };
+  });
+
+  return { itinerary: newItinerary, savedRoutes: newSavedRoutes };
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
@@ -68,33 +114,34 @@ export const useAppStore = create<AppState>()(
       activeRouteId: null,
       telemetry: { tool: null, status: "idle" as const },
       streaming: false,
+      travelPreferences: DEFAULT_TRAVEL_PREFERENCES,
 
       setTab: (tab) => set({ tab }),
-      addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
+      addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
       appendToLastAssistant: (text) =>
-        set((s) => ({
-          messages: updateLastAssistant(s.messages, (m) => ({ ...m, content: m.content + text })),
+        set((state) => ({
+          messages: updateLastAssistant(state.messages, (msg) => ({ ...msg, content: msg.content + text })),
         })),
       appendReasoning: (text) =>
-        set((s) => ({
-          messages: updateLastAssistant(s.messages, (m) => ({
-            ...m,
-            reasoning: (m.reasoning ?? "") + text,
+        set((state) => ({
+          messages: updateLastAssistant(state.messages, (msg) => ({
+            ...msg,
+            reasoning: (msg.reasoning ?? "") + text,
           })),
         })),
       pushStep: (step) =>
-        set((s) => ({
-          messages: updateLastAssistant(s.messages, (m) => ({
-            ...m,
-            steps: [...(m.steps ?? []), step],
+        set((state) => ({
+          messages: updateLastAssistant(state.messages, (msg) => ({
+            ...msg,
+            steps: [...(msg.steps ?? []), step],
           })),
         })),
-      resolveStep: (id) =>
-        set((s) => ({
-          messages: updateLastAssistant(s.messages, (m) => ({
-            ...m,
-            steps: (m.steps ?? []).map((st) =>
-              st.id === id ? { ...st, status: "done" as const } : st,
+      resolveStep: (stepId) =>
+        set((state) => ({
+          messages: updateLastAssistant(state.messages, (msg) => ({
+            ...msg,
+            steps: (msg.steps ?? []).map((step) =>
+              step.id === stepId ? { ...step, status: "done" as const } : step,
             ),
           })),
         })),
@@ -102,15 +149,15 @@ export const useAppStore = create<AppState>()(
       // 自动入库：同签名（标题|天数）已存在则更新行程内容并保留用户的状态/收藏标记，
       // 同时清洗 completedNodes，只保留新 nodes 中仍能匹配到的键。
       saveRoute: (itinerary) =>
-        set((s) => {
+        set((state) => {
           const sig = routeSignature(itinerary);
-          const existing = s.savedRoutes.find((r) => routeSignature(r.itinerary) === sig);
+          const existing = state.savedRoutes.find((route) => routeSignature(route.itinerary) === sig);
           if (existing) {
             const newKeys = new Set(itinerary.nodes.map(nodeKey));
-            const cleaned = existing.completedNodes.filter((k) => newKeys.has(k));
+            const cleaned = existing.completedNodes.filter((key) => newKeys.has(key));
             return {
-              savedRoutes: s.savedRoutes.map((r) =>
-                r.id === existing.id ? { ...r, itinerary, savedAt: Date.now(), completedNodes: cleaned } : r,
+              savedRoutes: state.savedRoutes.map((route) =>
+                route.id === existing.id ? { ...route, itinerary, savedAt: Date.now(), completedNodes: cleaned } : route,
               ),
             };
           }
@@ -124,43 +171,41 @@ export const useAppStore = create<AppState>()(
                 itinerary,
                 completedNodes: [],
               },
-              ...s.savedRoutes,
+              ...state.savedRoutes,
             ],
           };
         }),
-      toggleRouteStatus: (id) =>
-        set((s) => ({
-          savedRoutes: s.savedRoutes.map((r) =>
-            r.id === id
+      toggleRouteStatus: (routeId) =>
+        set((state) => ({
+          savedRoutes: state.savedRoutes.map((route) =>
+            route.id === routeId
               ? {
-                  ...r,
-                  status: r.status === "planned" ? ("completed" as const) : ("planned" as const),
+                  ...route,
+                  status: route.status === "planned" ? ("completed" as const) : ("planned" as const),
                 }
-              : r,
+              : route,
           ),
         })),
-      toggleRouteFavorite: (id) =>
-        set((s) => ({
-          savedRoutes: s.savedRoutes.map((r) =>
-            r.id === id ? { ...r, favorite: !r.favorite } : r,
+      toggleRouteFavorite: (routeId) =>
+        set((state) => ({
+          savedRoutes: state.savedRoutes.map((route) =>
+            route.id === routeId ? { ...route, favorite: !route.favorite } : route,
           ),
         })),
-      deleteRoute: (id) =>
-        set((s) => ({ savedRoutes: s.savedRoutes.filter((r) => r.id !== id) })),
+      deleteRoute: (routeId) =>
+        set((state) => ({ savedRoutes: state.savedRoutes.filter((route) => route.id !== routeId) })),
       setActiveRouteId: (activeRouteId) => set({ activeRouteId }),
-      toggleNodeComplete: (routeId, key) =>
-        set((s) => ({
-          savedRoutes: s.savedRoutes.map((r) => {
-            if (r.id !== routeId) return r;
-            const completedSet = new Set(r.completedNodes);
-            if (completedSet.has(key)) completedSet.delete(key);
-            else completedSet.add(key);
-            const stopKeys = r.itinerary.nodes
-              .filter(isStopNode)
-              .map(nodeKey);
-            const allDone = stopKeys.length > 0 && stopKeys.every((k) => completedSet.has(k));
+      toggleNodeComplete: (routeId, nodeMatchKey) =>
+        set((state) => ({
+          savedRoutes: state.savedRoutes.map((route) => {
+            if (route.id !== routeId) return route;
+            const completedSet = new Set(route.completedNodes);
+            if (completedSet.has(nodeMatchKey)) completedSet.delete(nodeMatchKey);
+            else completedSet.add(nodeMatchKey);
+
+            const allDone = checkAllStopsCompleted(route.itinerary.nodes, [...completedSet]);
             return {
-              ...r,
+              ...route,
               completedNodes: [...completedSet],
               status: allDone ? ("completed" as const) : ("planned" as const),
             };
@@ -168,12 +213,26 @@ export const useAppStore = create<AppState>()(
         })),
       setTelemetry: (telemetry) => set({ telemetry }),
       setStreaming: (streaming) => set({ streaming }),
+
+      updateNode: (index, updatedNode) =>
+        set((state) => syncItineraryNodes(state, (nodes) => nodes.map((item, idx) => (idx === index ? updatedNode : item)))),
+      addNode: (node) =>
+        set((state) => syncItineraryNodes(state, (nodes) => [...nodes, node])),
+      deleteNode: (index) =>
+        set((state) => syncItineraryNodes(state, (nodes) => nodes.filter((_, idx) => idx !== index))),
+
+      updatePreferences: (prefs) =>
+        set((state) => ({ travelPreferences: { ...state.travelPreferences, ...prefs } })),
+      clearMessages: () => set({ messages: [] }),
+      resetSavedRoutes: () => set({ savedRoutes: [], activeRouteId: null }),
     }),
     {
-      // 只持久化路线库；会话/流式等易变状态不落 localStorage。
+      // 持久化路线库与旅行偏好设置。
       name: "travel-route-library",
       version: 1,
-      partialize: (s) => ({ savedRoutes: s.savedRoutes }),
+      partialize: (state) => ({ savedRoutes: state.savedRoutes, travelPreferences: state.travelPreferences }),
     },
   ),
 );
+
+

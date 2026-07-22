@@ -23,6 +23,10 @@ class ItineraryNode(BaseModel):
         default=None,
         description="该地点的真实照片 URL，取自高德 text_search 返回的 photo 字段；没有则留空，不要编造",
     )
+    next_distance_km: Optional[float] = Field(
+        default=None,
+        description="到下一个 stop 节点的路线距离（公里），通过高德 distance 工具获取",
+    )
 
 
 class Itinerary(BaseModel):
