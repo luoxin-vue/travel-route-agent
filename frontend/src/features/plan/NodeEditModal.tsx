@@ -24,7 +24,6 @@ const PROTOCOL_OPTIONS = [
   { value: "BICYCLING", label: "骑行" },
 ];
 
-/** 行程节点编辑与新增模态框（Warm Linen 优雅卡片风格）。 */
 export function NodeEditModal({
   isOpen,
   node,
@@ -232,7 +231,7 @@ export function NodeEditModal({
             </div>
           </div>
 
-          {/* 出行方式/协议与距上一站提示 */}
+          {/* 出行方式/协议与距下站距离 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-[13px] font-medium text-ink">交通/出行方式</label>

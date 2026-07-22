@@ -47,7 +47,6 @@ function protocolIcon(protocol?: string | null): LucideIcon {
   }
 }
 
-/** 交通衔接：精致轻柔连接块。 */
 function TransportLink({ node, onEdit }: { node: ItineraryNode; onEdit?: () => void }) {
   const Icon = protocolIcon(node.protocol);
   const label = protocolLabel(node.protocol);
@@ -210,7 +209,6 @@ function StopCard({
   );
 }
 
-/** 路线时间轴：空气感垂直时间线 + 站点卡片 + 交通衔接。 */
 export function RouteTimeline({
   itinerary,
   completedNodes,

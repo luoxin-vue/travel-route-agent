@@ -2,11 +2,12 @@ import type { ItineraryNode } from "../types";
 import { protocolLabel } from "./labels";
 import { estimateTravelMinutes, getRecommendedMode } from "./travel-speed";
 
-const RECOMMENDED_PROTOCOL: Record<string, string> = {
+const MODE_TO_PROTOCOL: Record<string, string> = {
   walking: "WALKING",
   driving: "DRIVING",
 };
 
+/** Haversine 球面距离公式，R=6371 为地球平均半径（km）。 */
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -36,7 +37,7 @@ function buildHintText(
   }
 
   const recommended = getRecommendedMode(distanceKm);
-  const recProtocol = RECOMMENDED_PROTOCOL[recommended];
+  const recProtocol = MODE_TO_PROTOCOL[recommended];
   const recLabel = protocolLabel(recProtocol);
 
   if (!userProtocol) {
@@ -50,7 +51,7 @@ function buildHintText(
 
   const userMatchesRec =
     (recommended === "walking" && userKey === "WALKING") ||
-    (recommended === "driving" && ["DRIVING", "TAXI"].includes(userKey));
+    (recommended === "driving" && userKey === "DRIVING");
 
   if (userMatchesRec) {
     return `${direction} ${formattedDistance} · ${userLabel}约 ${userMins} 分钟`;
@@ -67,27 +68,26 @@ export function computeDistanceHint(
   const current = allNodes[nodeIndex];
   if (!current || current.type === "transport") return null;
 
-  const stopNodes = allNodes.filter((n) => n.type !== "transport");
+  const stopNodes = allNodes.filter((node) => node.type !== "transport");
   const stopIdx = stopNodes.indexOf(current);
   if (stopNodes.length < 2) return null;
 
-  const isFirst = stopIdx === 0;
-  const direction = isFirst ? "距下站" : "距上站";
-  const sourceStop = isFirst ? current : stopNodes[stopIdx - 1];
-  const targetStop = isFirst ? stopNodes[1] : current;
+  // 末站无下一站，不展示距离提示，由 StopCard 展示区域/时长
+  if (stopIdx === stopNodes.length - 1) return null;
 
-  const distKm = resolveDistance(sourceStop, targetStop);
+  const nextStop = stopNodes[stopIdx + 1];
+  const distKm = resolveDistance(current, nextStop);
 
   if (distKm == null) {
-    if (sourceStop.protocol?.toUpperCase() === "FLIGHT") {
-      return direction;
+    if (current.protocol?.toUpperCase() === "FLIGHT") {
+      return "距下站";
     }
-    const transportBetween = findTransportBetween(allNodes, sourceStop, targetStop);
+    const transportBetween = findTransportBetween(allNodes, current, nextStop);
     const mode = transportBetween?.protocol ? protocolLabel(transportBetween.protocol) : "";
-    return `${direction}${mode}约 15 分钟`;
+    return `距下站${mode}约 15 分钟`;
   }
 
-  return buildHintText(distKm, direction, sourceStop.protocol);
+  return buildHintText(distKm, "距下站", current.protocol);
 }
 
 function resolveDistance(from: ItineraryNode, to: ItineraryNode): number | null {
@@ -108,5 +108,5 @@ function findTransportBetween(
   if (fromIndex === -1 || toIndex === -1) return undefined;
   const start = Math.min(fromIndex, toIndex);
   const end = Math.max(fromIndex, toIndex);
-  return allNodes.slice(start + 1, end).find((n) => n.type === "transport");
+  return allNodes.slice(start + 1, end).find((node) => node.type === "transport");
 }

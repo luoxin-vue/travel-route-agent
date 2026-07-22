@@ -51,8 +51,8 @@ describe("estimateTravelMinutes", () => {
     expect(estimateTravelMinutes(500, "FLIGHT")).toBeNull();
   });
 
-  it("短距离按实际计算且最小为 1 分钟", () => {
-    expect(estimateTravelMinutes(0.1, "DRIVING")).toBe(1);
+  it("短距离按实际计算且最小为 5 分钟", () => {
+    expect(estimateTravelMinutes(0.1, "DRIVING")).toBe(5);
   });
 
   it("protocol 大小写不敏感", () => {

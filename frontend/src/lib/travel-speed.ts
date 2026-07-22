@@ -20,7 +20,7 @@ export function estimateTravelMinutes(
   const key = protocol.toUpperCase();
   if (key === "FLIGHT") return null;
   const speed = SPEED_KMH[key] ?? DEFAULT_SPEED;
-  return Math.max(1, Math.round((distanceKm / speed) * 60));
+  return Math.max(5, Math.round((distanceKm / speed) * 60));
 }
 
 export function getRecommendedMode(

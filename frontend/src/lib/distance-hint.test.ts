@@ -59,39 +59,57 @@ describe("computeDistanceHint", () => {
     expect(hint).toContain("步行");
   });
 
-  // --- 非首站：距上站 ---
+  // --- 中间站：距下站 ---
 
-  it("非首站 + 上一站有 next_distance_km → 展示距上站", () => {
+  it("中间站 + 自己有 next_distance_km → 展示距下站", () => {
     const nodes = [
+      stop({ next_distance_km: 1.0 }),
       stop({ next_distance_km: 2.5 }),
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 1);
-    expect(hint).toContain("距上站");
+    expect(hint).toContain("距下站");
     expect(hint).toContain("2.5 km");
   });
 
-  it("非首站 + 上一站 protocol=WALKING → 用步行速度算时间", () => {
+  it("中间站 + 自己有 protocol=WALKING → 用步行速度算时间", () => {
     const nodes = [
+      stop({ next_distance_km: 1.0 }),
       stop({ next_distance_km: 0.9, protocol: "WALKING" }),
       stop(),
     ];
     const hint = computeDistanceHint(nodes, 1);
-    expect(hint).toContain("距上站");
+    expect(hint).toContain("距下站");
     expect(hint).toContain("步行");
     // 0.9 km ÷ 4.5 km/h × 60 = 12 分钟
     expect(hint).toContain("12");
   });
 
-  it("末站与中间站同一逻辑 → 距上站", () => {
+  it("三站全链路 — 首站距下站，末站返回 null", () => {
     const nodes = [
       stop({ next_distance_km: 1.0 }),
       stop({ next_distance_km: 3.0 }),
       stop(),
     ];
-    const hint = computeDistanceHint(nodes, 2);
-    expect(hint).toContain("距上站");
-    expect(hint).toContain("3 km");
+    const firstHint = computeDistanceHint(nodes, 0);
+    expect(firstHint).toContain("距下站");
+    expect(firstHint).toContain("1 km");
+
+    const midHint = computeDistanceHint(nodes, 1);
+    expect(midHint).toContain("距下站");
+    expect(midHint).toContain("3 km");
+
+    expect(computeDistanceHint(nodes, 2)).toBeNull();
+  });
+
+  // --- 末站 ---
+
+  it("末站 → 返回 null", () => {
+    const nodes = [
+      stop({ next_distance_km: 2.5 }),
+      stop(),
+    ];
+    expect(computeDistanceHint(nodes, 1)).toBeNull();
   });
 
   // --- 特殊情况 ---
@@ -148,21 +166,24 @@ describe("computeDistanceHint", () => {
     const hint0 = computeDistanceHint(nodes, 0);
     expect(hint0).toBe("距下站地铁约 15 分钟");
 
-    const hint2 = computeDistanceHint(nodes, 2);
-    expect(hint2).toBe("距上站地铁约 15 分钟");
+    // 末站返回 null
+    expect(computeDistanceHint(nodes, 2)).toBeNull();
   });
 
   // --- transport 节点夹在中间，应跳过 ---
 
-  it("stop 之间夹 transport 节点 → 正确识别相邻 stop", () => {
+  it("stop 之间夹 transport 节点，skip 后末站返回 null", () => {
     const nodes = [
       stop({ next_distance_km: 4.0 }),
       transport(),
       stop(),
     ];
-    // 第三个节点（index=2）是第二个 stop，应读第一个 stop 的 next_distance_km
-    const hint = computeDistanceHint(nodes, 2);
-    expect(hint).toContain("距上站");
+    // 首站 (stopIdx=0)：距下站，读自己的 4.0km
+    const hint = computeDistanceHint(nodes, 0);
+    expect(hint).toContain("距下站");
     expect(hint).toContain("4 km");
+
+    // 末站 (stopIdx=1)：返回 null
+    expect(computeDistanceHint(nodes, 2)).toBeNull();
   });
 });
