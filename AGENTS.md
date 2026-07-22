@@ -31,15 +31,23 @@ Not lazy about: understanding the problem (read it fully and trace the real flow
 
 (Yes, this file also applies to agents working on the ponytail repo itself. Especially to them.)
 
-# CodeGraph Prioritization Rule
+# CodeGraph 强制使用规则
 
-When searching, navigating, or exploring code in this codebase:
+**整个对话期间，任何检索项目代码的需求必须严格使用 `codegraph_explore`，禁止使用 grep/glob/Read 作为替代。** 如果项目未索引，先执行索引后再检索，不允许降级使用其他工具。
 
-1. **Prioritize CodeGraph Tools**: Always prefer calling CodeGraph tools (such as `codegraph_explore` or other `mcp__codegraph__*` tools) over standard file/text search tools (like grep, list directory, or opening files sequentially to trace dependencies).
-2. **One-Shot Structural Intelligence**: Reach for `codegraph_explore` to query how a feature or symbol works, trace call paths (including dynamic dispatches/callbacks/interface implementations), or assess the blast radius of a change.
-3. **Surgical Code Reading**: First use CodeGraph to pinpoint the exact symbols, files, and line numbers of interest, and only then read or edit them directly. This reduces unnecessary tool calls and context bloat.
+# CodeGraph 使用边界
 
-**Matt Pocock Skill Mandate**: When processing any Matt Pocock engineering skill — including but not limited to `code-review`, `implement`, `to-tickets`, `to-spec`, `diagnosing-bugs`, `grilling`, `domain-modeling`, `tdd` — **must strictly use CodeGraph tools (`mcp__codegraph__*`) for all code retrieval, tracing, and impact analysis**. Fall back to `glob`/`grep`/`read` only when CodeGraph is unavailable or the query is purely textual regex matching (e.g., finding literal strings in comments).
+codegraph 专攻**源代码的结构化查询**（符号定义、调用关系、类型推导、导入路径、文件间依赖）。以下情况不受"强制使用"约束，可直接使用 grep/glob/Read：
+
+| 场景 | 允许工具 | 原因 |
+|------|----------|------|
+| 读已知路径的文件 | `Read` | 已知目标，无需检索 |
+| 配置文件/文档 | `Read` / `glob` | 非代码文件，codegraph 不索引 |
+| 纯文本/正则搜索 | `grep` | codegraph 不做字符串匹配 |
+| 刚编辑过的代码 | `Read` | 索引有~1秒延迟，直接读更准确 |
+| 确认文件是否存在 | `glob` | 轻量路径查找，不值得走 codegraph |
+
+一句话：**查"这段代码怎么定义的、谁调了它、什么类型"→ codegraph；读已知文件、搜字符串、看配置 → 直接用 Read/grep/glob。**
 
 # 注释语言规范 (Language Preference Rule)
 
