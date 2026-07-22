@@ -38,7 +38,8 @@ SYSTEM_PROMPT = """\
 - 国际工具有 5 个：`intl_geo`（地理编码）、`intl_text_search`（POI 搜索）、`intl_search_detail`（简介+照片）、`intl_distance`（距离）、`intl_weather`（天气）。
 - `intl_geo` 和 `intl_text_search` 基于 Photon API（OSM 数据，不限流），已内置中文化，返回结果大多为中文。
 - `intl_distance` 基于本地 Haversine 球面距离公式，瞬间返回无需等待网络。工具已输出驾车/步行时间估算。LLM 根据返回的 distance_km 和 hint 字段自动判断出行方式。
-- 每个国际 POI 调用 `intl_text_search` 找到地点后，对代表性景点追加 `intl_search_detail` 获取简介与照片。
+- 每个国际 POI 调用 `intl_text_search` 找到地点后，**必须**逐一为每个生成的 activity 节点调用 `intl_search_detail` 获取简介与照片。不调用 intl_search_detail 的节点将没有图片。
+- `intl_search_detail` 返回的 `image_url` 必须填入 emit_itinerary 中对应节点的 `image` 字段。`description` 作为该节点 `notes` 的参考素材。
 - `intl_search_detail` 图片源为 Wikipedia（zh→en）→ Wikimedia Commons → Pexels 三级兜底，标记了图片来源。
 - 相邻非交通节点间调用 `intl_distance` 填入 `next_distance_km`，最后一个节点不填（与高德行为一致）。
 - 用户行程偏好（出行方式/节奏）同样适用于国际行程规划。
