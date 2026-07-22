@@ -15,11 +15,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>("preferences");
 
-  const travelPreferences = useAppStore((s) => s.travelPreferences);
-  const updatePreferences = useAppStore((s) => s.updatePreferences);
-  const clearMessages = useAppStore((s) => s.clearMessages);
-  const resetSavedRoutes = useAppStore((s) => s.resetSavedRoutes);
-  const savedRoutes = useAppStore((s) => s.savedRoutes);
+  const travelPreferences = useAppStore((state) => state.travelPreferences);
+  const updatePreferences = useAppStore((state) => state.updatePreferences);
+  const clearMessages = useAppStore((state) => state.clearMessages);
+  const resetSavedRoutes = useAppStore((state) => state.resetSavedRoutes);
+  const savedRoutes = useAppStore((state) => state.savedRoutes);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isConfirmingResetRoutes, setIsConfirmingResetRoutes] = useState(false);
