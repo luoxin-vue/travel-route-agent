@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc -b",
     "build": "tsc -b && vite build",
+    "test:fast": "vitest run",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
