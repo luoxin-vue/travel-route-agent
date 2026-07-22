@@ -21,7 +21,7 @@ class ItineraryNode(BaseModel):
     notes: Optional[str] = Field(default=None, description="备注说明")
     image: Optional[str] = Field(
         default=None,
-        description="该地点的真实照片 URL（国际取自 Wikipedia/Wikimedia/Pexels/Unsplash/Flickr 多渠道搜索；全空时使用通用占位图。不要编造 URL）",
+        description="该地点的真实照片 URL（国内取自高德 photo 字段，国际取自 Wikipedia/Wikimedia/Pexels/Unsplash/Flickr 多渠道搜索；全空时使用通用占位图。不要编造 URL）",
     )
     next_distance_km: Optional[float] = Field(
         default=None,
@@ -36,6 +36,6 @@ class Itinerary(BaseModel):
     days: int = Field(default=1, description="总天数")
     cover_image: Optional[str] = Field(
         default=None,
-        description="行程封面图 URL（国际取自 Wikipedia/Wikimedia/Pexels/Unsplash/Flickr 多渠道搜索；全空时使用通用占位图）",
+        description="行程封面图 URL（国内取自高德 photo，国际取自 Wikipedia/Wikimedia/Pexels/Unsplash/Flickr 多渠道搜索；全空时使用通用占位图）",
     )
     nodes: list[ItineraryNode] = Field(default_factory=list, description="按时间排序的节点列表")

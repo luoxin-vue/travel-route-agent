@@ -302,6 +302,53 @@ async def test_intl_search_detail_all_sources_fail_placeholder():
         assert _PLACEHOLDER_IMAGE in result
 
 
+@pytest.mark.asyncio
+async def test_intl_search_detail_key_empty_skipped():
+    """Key 为空时跳过对应渠道，不报错，链继续。"""
+    with patch("app.agent.intl_tools._client") as mock_client:
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": []}}),   # zh wiki 空
+            _mock_response({"query": {"search": []}}),   # en wiki 空
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Some Place"})
+        # 所有 Key 未配置 → 直接到占位图
+        assert _PLACEHOLDER_IMAGE in result
+        assert calls == 2  # 仅 Wikipedia 进行了调用，图片源全部跳过
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_source_exception_swallowed():
+    """某渠道抛异常 → 吞掉继续下一级，最终到占位图"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {
+             "PEXELS_API_KEY": "test-key",
+             "UNSPLASH_ACCESS_KEY": "unsplash-key",
+         }):
+        calls = 0
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return _mock_response({"query": {"search": [{"pageid": 1}]}})
+            if calls == 2:
+                return _mock_response({"query": {"pages": {"1": {
+                    "extract": "A place.", "thumbnail": None,
+                }}}})
+            if calls == 3:
+                return _mock_response({"query": {"search": []}})  # Wikimedia 空
+            # Pexels 和 Unsplash 均抛异常
+            raise Exception("Network down")
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Error Place"})
+        assert _PLACEHOLDER_IMAGE in result
+
+
 # ── Haversine ──
 def test_haversine_km_known():
     """北京天安门 → 故宫北门 ≈ 1.5km"""

@@ -117,11 +117,25 @@ async def _photon_search(
     return results
 
 
-# ── 占位图 —— 所有渠道无结果时的兜底 ──
+# ── 占位图 —— 所有渠道无结果时的兜底（复用 Pexels CURATED_IMAGES hero[0] 主题） ──
 _PLACEHOLDER_IMAGE = (
-    "https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg"
+    "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg"
     "?auto=compress&cs=tinysrgb&w=400"
 )
+
+
+async def _image_search(env_key: str, make_request):
+    """搜索单个图片渠道。Key 未配置 / 网络异常 / 无结果均返回 None。
+    make_request(key) → httpx.get() 关键字参数。"""
+    key = os.getenv(env_key, "").strip()
+    if not key:
+        return None
+    try:
+        resp = await _client().get(**make_request(key))
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
 
 
 # ── 工具实现 ──
@@ -237,82 +251,63 @@ async def intl_search_detail(name: str) -> str:
 
         # 4) Pexels 兜底（需 PEXELS_API_KEY 环境变量，不填跳过）
         if not image_url:
-            pexels_key = os.getenv("PEXELS_API_KEY", "").strip()
-            if pexels_key:
-                try:
-                    pexels_resp = await client.get(
-                        "https://api.pexels.com/v1/search",
-                        params={"query": name, "per_page": 1},
-                        headers={"Authorization": pexels_key},
-                    )
-                    pexels_resp.raise_for_status()
-                    pexels_data = pexels_resp.json()
-                    pexels_photos = pexels_data.get("photos", [])
-                    if pexels_photos:
-                        image_url = pexels_photos[0]["src"]["medium"]
-                        pexels_ok = True
-                except Exception:
-                    pass  # Pexels 不可用时静默跳过
+            data = await _image_search("PEXELS_API_KEY", lambda k: {
+                "url": "https://api.pexels.com/v1/search",
+                "params": {"query": name, "per_page": 1},
+                "headers": {"Authorization": k},
+            })
+            if data:
+                photos = data.get("photos", [])
+                if photos:
+                    image_url = photos[0]["src"]["medium"]
+                    pexels_ok = True
 
         # 5) Unsplash 兜底（需 UNSPLASH_ACCESS_KEY 环境变量，不填跳过）
         if not image_url:
-            unsplash_key = os.getenv("UNSPLASH_ACCESS_KEY", "").strip()
-            if unsplash_key:
-                try:
-                    unsplash_resp = await client.get(
-                        "https://api.unsplash.com/search/photos",
-                        params={"query": name, "per_page": 1},
-                        headers={"Authorization": f"Client-ID {unsplash_key}"},
-                    )
-                    unsplash_resp.raise_for_status()
-                    unsplash_data = unsplash_resp.json()
-                    unsplash_results = unsplash_data.get("results", [])
-                    if unsplash_results:
-                        image_url = unsplash_results[0]["urls"]["small"]
-                        unsplash_ok = True
-                except Exception:
-                    pass  # Unsplash 不可用时静默跳过
+            data = await _image_search("UNSPLASH_ACCESS_KEY", lambda k: {
+                "url": "https://api.unsplash.com/search/photos",
+                "params": {"query": name, "per_page": 1},
+                "headers": {"Authorization": f"Client-ID {k}"},
+            })
+            if data:
+                results = data.get("results", [])
+                if results:
+                    image_url = results[0]["urls"]["small"]
+                    unsplash_ok = True
 
         # 6) Flickr 兜底（需 FLICKR_API_KEY 环境变量，不填跳过）
         if not image_url:
-            flickr_key = os.getenv("FLICKR_API_KEY", "").strip()
-            if flickr_key:
-                try:
-                    flickr_resp = await client.get(
-                        "https://www.flickr.com/services/rest/",
-                        params={
-                            "method": "flickr.photos.search",
-                            "api_key": flickr_key,
-                            "text": name,
-                            "per_page": 1,
-                            "license": "1,2,4,5,7,8,9,10",
-                            "format": "json",
-                            "nojsoncallback": 1,
-                        },
+            data = await _image_search("FLICKR_API_KEY", lambda k: {
+                "url": "https://www.flickr.com/services/rest/",
+                "params": {
+                    "method": "flickr.photos.search",
+                    "api_key": k,
+                    "text": name,
+                    "per_page": 1,
+                    "license": "1,2,4,5,7,8,9,10",
+                    "format": "json",
+                    "nojsoncallback": 1,
+                },
+            })
+            if data:
+                photo_list = data.get("photos", {}).get("photo", [])
+                if photo_list:
+                    p = photo_list[0]
+                    image_url = (
+                        f"https://farm{p['farm']}.staticflickr.com/"
+                        f"{p['server']}/{p['id']}_{p['secret']}_z.jpg"
                     )
-                    flickr_resp.raise_for_status()
-                    flickr_data = flickr_resp.json()
-                    flickr_photos = flickr_data.get("photos", {}).get("photo", [])
-                    if flickr_photos:
-                        p = flickr_photos[0]
-                        image_url = (
-                            f"https://farm{p['farm']}.staticflickr.com/"
-                            f"{p['server']}/{p['id']}_{p['secret']}_z.jpg"
-                        )
-                        flickr_ok = True
-                except Exception:
-                    pass  # Flickr 不可用时静默跳过
+                    flickr_ok = True
 
         # 7) 所有渠道无结果 → 通用占位图
         if not image_url:
             image_url = _PLACEHOLDER_IMAGE
 
-        source_tag = (
-            "[Flickr]" if flickr_ok else
-            "[Unsplash]" if unsplash_ok else
-            "[Pexels]" if pexels_ok else
-            ("[中文]" if zh_ok else "[英文]")
-        )
+        source_tag = "[英文]"
+        if zh_ok: source_tag = "[中文]"
+        if pexels_ok: source_tag = "[Pexels]"
+        if unsplash_ok: source_tag = "[Unsplash]"
+        if flickr_ok: source_tag = "[Flickr]"
         result = f"{source_tag} description: {description}"
         if image_url:
             result += f"\nimage_url: {image_url}"
