@@ -114,18 +114,18 @@ export function NodeEditModal({
                   { key: "lodging", label: "过夜住宿" },
                   { key: "transport", label: "交通衔接" },
                 ] as const
-              ).map((item) => (
+              ).map((nodeTypeOption) => (
                 <button
-                  key={item.key}
+                  key={nodeTypeOption.key}
                   type="button"
-                  onClick={() => setType(item.key)}
+                  onClick={() => setType(nodeTypeOption.key)}
                   className={`whitespace-nowrap rounded-xl border px-3 py-2 text-[13px] font-medium transition-all ${
-                    type === item.key
+                    type === nodeTypeOption.key
                       ? "border-primary bg-primary-container/40 text-primary shadow-soft"
                       : "border-card-border bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
                   }`}
                 >
-                  {item.label}
+                  {nodeTypeOption.label}
                 </button>
               ))}
             </div>

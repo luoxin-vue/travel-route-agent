@@ -18,3 +18,25 @@ const TOOL_LABELS: Record<string, string> = {
 export function toolLabel(name: string): string {
   return TOOL_LABELS[name] ?? name;
 }
+
+/** 行程节点协议/方式英文 → 中文。未命中回退原值。 */
+export const PROTOCOL_LABELS: Record<string, string> = {
+  WALKING: "步行",
+  DRIVING: "驾车",
+  TRANSIT: "公交",
+  METRO: "地铁",
+  SUBWAY: "地铁",
+  BUS: "公交",
+  TRAIN: "火车",
+  HIGH_SPEED_RAIL: "高铁",
+  FLIGHT: "飞机",
+  TAXI: "打车",
+  BICYCLING: "骑行",
+  HOTEL: "酒店",
+  LODGING: "住宿",
+};
+
+export function protocolLabel(protocol?: string | null): string {
+  if (!protocol) return "";
+  return PROTOCOL_LABELS[protocol.toUpperCase()] ?? protocol;
+}

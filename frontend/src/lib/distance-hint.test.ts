@@ -129,12 +129,27 @@ describe("computeDistanceHint", () => {
     expect(hint).toContain("距下站");
   });
 
-  it("无 next_distance_km + 无坐标 → 默认 fallback", () => {
-    const nodes = [stop(), stop()];
+  it("FLIGHT 无距离数据时只显示方向不估计分钟", () => {
+    const nodes = [
+      stop({ protocol: "FLIGHT" }),
+      stop(),
+    ];
     const hint = computeDistanceHint(nodes, 0);
-    expect(hint).not.toBeNull();
-    // 至少有一个可读的提示文案
-    expect(hint).toContain("距下站");
+    expect(hint).toBe("距下站");
+    expect(hint).not.toContain("分钟");
+  });
+
+  it("无 next_distance_km + 无坐标 → 尝试从中间 transport 节点推断方式", () => {
+    const nodes = [
+      stop(),
+      { type: "transport", name: "地铁", protocol: "METRO" } as ItineraryNode,
+      stop(),
+    ];
+    const hint0 = computeDistanceHint(nodes, 0);
+    expect(hint0).toBe("距下站地铁约 15 分钟");
+
+    const hint2 = computeDistanceHint(nodes, 2);
+    expect(hint2).toBe("距上站地铁约 15 分钟");
   });
 
   // --- transport 节点夹在中间，应跳过 ---

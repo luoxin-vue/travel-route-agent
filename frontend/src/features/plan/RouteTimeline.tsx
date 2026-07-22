@@ -21,27 +21,7 @@ import { nodeKey } from "../../types";
 import { SmartImage } from "../../components/SmartImage";
 import { computeDistanceHint } from "../../lib/distance-hint";
 
-/** 行程节点的 protocol（方式）英文 → 中文，未命中回退原值。 */
-const PROTOCOL_LABELS: Record<string, string> = {
-  WALKING: "步行",
-  DRIVING: "驾车",
-  TRANSIT: "公交",
-  METRO: "地铁",
-  SUBWAY: "地铁",
-  BUS: "公交",
-  TRAIN: "火车",
-  HIGH_SPEED_RAIL: "高铁",
-  FLIGHT: "飞机",
-  TAXI: "打车",
-  BICYCLING: "骑行",
-  HOTEL: "酒店",
-  LODGING: "住宿",
-};
-
-function protocolLabel(protocol?: string | null): string {
-  if (!protocol) return "";
-  return PROTOCOL_LABELS[protocol.toUpperCase()] ?? protocol;
-}
+import { protocolLabel } from "../../lib/labels";
 
 function protocolIcon(protocol?: string | null): LucideIcon {
   switch ((protocol ?? "").toUpperCase()) {
