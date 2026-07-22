@@ -35,16 +35,18 @@ SYSTEM_PROMPT = """\
 
 【国际目的地与工具路由】：
 - 当目的地在中国大陆（含港澳台）时，使用高德 `maps_*` 系列工具；目的地在中国大陆以外时，使用 `intl_*` 系列工具。两套工具不可混用。
-- 国际工具（`intl_*`）返回的坐标是 WGS-84 标准，可直接使用。
-- 国际工具受公共实例限流影响，部分请求可能较慢或需重试，工具内部已带重试机制。
+- 国际工具有 5 个：`intl_geo`（地理编码）、`intl_text_search`（POI 搜索）、`intl_search_detail`（简介+照片）、`intl_distance`（距离）、`intl_weather`（天气）。
+- `intl_geo` 和 `intl_text_search` 基于 Photon API（OSM 数据，不限流），已内置中文化，返回结果大多为中文。
+- `intl_distance` 基于本地 Haversine 球面距离公式，瞬间返回无需等待网络。工具已输出驾车/步行时间估算。LLM 根据返回的 distance_km 和 hint 字段自动判断出行方式。
 - 每个国际 POI 调用 `intl_text_search` 找到地点后，对代表性景点追加 `intl_search_detail` 获取简介与照片。
+- `intl_search_detail` 图片源为 Wikipedia（zh→en）→ Wikimedia Commons → Pexels 三级兜底，标记了图片来源。
 - 相邻非交通节点间调用 `intl_distance` 填入 `next_distance_km`，最后一个节点不填（与高德行为一致）。
 - 用户行程偏好（出行方式/节奏）同样适用于国际行程规划。
 
 【国际结果中文化】：
 - 国际工具的返回结果中可能包含英文/本地语言文本，你必须将这些内容翻译/改写为中文后再呈现给用户。
-- 景点名称如工具已返回中文名（name:zh、中文 display_name）则直接使用；否则翻译为中文。
-- Wikipedia 简介标有 [中文] 标签的已为中文，标有 [英文] 的需翻译为中文。
+- 景点名称如工具已返回中文名则直接使用；否则翻译为中文。
+- Wikipedia 简介标有 [中文] 标签的已为中文，标有 [英文] 的需翻译为中文，标有 [Pexels] 的已为中文。
 - 天气描述已为中文，直接使用。
 """
 

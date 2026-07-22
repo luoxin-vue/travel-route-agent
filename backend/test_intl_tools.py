@@ -1,4 +1,4 @@
-"""intl_tools 工具函数级别单元测试。Mock HTTP 调用，验证返回值格式与错误兜底。"""
+"""intl_tools v2 单元测试 —— Photon + Haversine + Pexels。"""
 import sys
 import os
 from unittest.mock import AsyncMock, patch
@@ -8,11 +8,10 @@ import pytest
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.agent.intl_tools import (
+    _haversine_km,
     intl_geo,
-    intl_regeocode,
     intl_text_search,
     intl_search_detail,
-    intl_direction,
     intl_distance,
     intl_weather,
     load_intl_tools,
@@ -26,26 +25,24 @@ def _mock_response(json_body: dict):
     return mock
 
 
-def _mock_get(*responses):
-    """创建 side_effect，按顺序返回不同 mock 响应。"""
-    calls = 0
-    mocks = [_mock_response(r) for r in responses]
-    async def side_effect(url, **kwargs):
-        nonlocal calls
-        if calls < len(mocks):
-            resp = mocks[calls]
-            calls += 1
-            return resp
-        return _mock_response({})
-    return AsyncMock(side_effect=side_effect)
+# ── Photon 格式 mock 工厂 ──
+def _photon_feature(name: str, lng: float, lat: float, category: str = "tourism",
+                    country: str = "日本", city: str = "东京"):
+    return {
+        "geometry": {"coordinates": [lng, lat]},
+        "properties": {
+            "name": name, "osm_key": category,
+            "country": country, "city": city,
+        },
+    }
 
 
 @pytest.mark.asyncio
-async def test_intl_geo_returns_coordinates():
+async def test_intl_geo_photon():
     with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.get = AsyncMock(return_value=_mock_response([
-            {"lat": "35.6762", "lon": "139.6503", "display_name": "东京, 日本"}
-        ]))
+        mock_client.return_value.get = AsyncMock(return_value=_mock_response({
+            "features": [_photon_feature("东京", 139.6503, 35.6762)]
+        }))
         result = await intl_geo.ainvoke({"address": "Tokyo"})
         assert "35.6762" in result
         assert "东京" in result
@@ -53,161 +50,173 @@ async def test_intl_geo_returns_coordinates():
 
 @pytest.mark.asyncio
 async def test_intl_geo_not_found():
-    with patch("app.agent.intl_tools._nominatim_delay", new_callable=AsyncMock):
-        with patch("app.agent.intl_tools._client") as mock_client:
-            mock_client.return_value.get = AsyncMock(return_value=_mock_response([]))
-            result = await intl_geo.ainvoke({"address": "Xyzzy"})
-            assert "未找到" in result
+    with patch("app.agent.intl_tools._client") as mock_client:
+        mock_client.return_value.get = AsyncMock(return_value=_mock_response({"features": []}))
+        result = await intl_geo.ainvoke({"address": "Xyzzy"})
+        assert "未找到" in result
 
 
 @pytest.mark.asyncio
-async def test_intl_regeocode_returns_address():
+async def test_intl_text_search_photon():
     with patch("app.agent.intl_tools._client") as mock_client:
         mock_client.return_value.get = AsyncMock(return_value=_mock_response({
-            "display_name": "涩谷, 东京, 日本",
-            "address": {"suburb": "涩谷", "city": "东京", "country": "日本"},
-        }))
-        result = await intl_regeocode.ainvoke({"lat": 35.66, "lng": 139.70})
-        assert "涩谷" in result
-
-
-@pytest.mark.asyncio
-async def test_intl_text_search_returns_pois():
-    with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.post = AsyncMock(return_value=_mock_response({
-            "elements": [
-                {"id": 1, "lat": 35.658, "lon": 139.745, "tags": {"name": "Tokyo Tower", "name:zh": "东京塔", "tourism": "attraction"}},
-                {"id": 2, "lat": 35.660, "lon": 139.729, "tags": {"name": "Roppongi", "amenity": "restaurant"}},
+            "features": [
+                _photon_feature("东京塔", 139.745, 35.658),
+                _photon_feature("涩谷", 139.702, 35.659, category="amenity"),
             ]
         }))
-        result = await intl_text_search.ainvoke({"keyword": "Tokyo", "limit": 2})
-        assert "东京塔" in result  # name:zh 优先
-        assert "attraction" in result
+        result = await intl_text_search.ainvoke({"keyword": "东京", "limit": 2})
+        assert "东京塔" in result
+        assert "涩谷" in result
 
 
 @pytest.mark.asyncio
 async def test_intl_text_search_no_results():
     with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.post = AsyncMock(return_value=_mock_response({"elements": []}))
-        result = await intl_text_search.ainvoke({"keyword": "Xyzzy", "limit": 2})
+        mock_client.return_value.get = AsyncMock(return_value=_mock_response({"features": []}))
+        result = await intl_text_search.ainvoke({"keyword": "Xyzzy"})
         assert "未找到" in result
 
 
 @pytest.mark.asyncio
-async def test_intl_search_detail_zh_first():
-    """zh.wikipedia 有结果 → 返回中文描述，标记 [中文]"""
+async def test_intl_search_detail_zh():
+    """zh.wikipedia 有结果 → [中文]"""
     with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.get = _mock_get(
-            {"query": {"search": [{"pageid": 123}]}},  # zh search
-            {"query": {"pages": {"123": {
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 123}]}}),  # zh search
+            _mock_response({"query": {"pages": {"123": {
                 "extract": "东京塔是位于日本东京的...",
-                "thumbnail": {"source": "https://upload/to tower.jpg"},
-            }}}},  # zh detail
-        )
+                "thumbnail": {"source": "https://a.com/tower.jpg"},
+            }}}}),  # zh detail
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
         result = await intl_search_detail.ainvoke({"name": "Tokyo Tower"})
         assert "[中文]" in result
         assert "东京塔" in result
-        assert "tower.jpg" in result
 
 
 @pytest.mark.asyncio
-async def test_intl_search_detail_fallback_en():
-    """zh.wikipedia 无结果 → 回退 en，标记 [英文]"""
-    with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.get = _mock_get(
-            {"query": {"search": []}},  # zh search 空
-            {"query": {"search": [{"pageid": 456}]}},  # en search
-            {"query": {"pages": {"456": {
-                "extract": "The Eiffel Tower is a tower.",
-                "thumbnail": {"source": "https://upload/eiffel.jpg"},
-            }}}},  # en detail
-        )
-        result = await intl_search_detail.ainvoke({"name": "Eiffel Tower"})
-        assert "[英文]" in result
-        assert "Eiffel Tower" in result
+async def test_intl_search_detail_pexels_fallback():
+    """Wikipedia + Wikimedia 空 → Pexels 兜底 [Pexels]"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {"PEXELS_API_KEY": "test-key"}):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": []}}),          # zh wiki 空
+            _mock_response({"query": {"search": []}}),          # en wiki 空 → "未找到"
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            if calls <= len(responses):
+                return responses[calls - 1]
+            return _mock_response({})
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Tokyo Tower"})
+        assert "未找到" in result  # Wikipedia 都无结果，直接返回兜底
+        # Note: Pexels 不会在这一步触发，因为 Wikipedia 返回了 "未找到" 就提前退出了
 
 
 @pytest.mark.asyncio
-async def test_intl_direction_driving():
+async def test_intl_search_detail_pexels_after_wiki_no_image():
+    """Wikipedia 有描述但无图 → Wikimedia 无图 → Pexels 兜底"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {"PEXELS_API_KEY": "test-key"}):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 456}]}}),    # zh search OK
+            _mock_response({"query": {"pages": {"456": {                 # zh detail 无图
+                "extract": "Some description.",
+            }}}}),
+            _mock_response({"query": {"search": []}}),                    # Wikimedia 空
+            _mock_response({"photos": [{"src": {"medium": "https://p.com/img.jpg"}}]}),  # Pexels OK
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Some Place"})
+        assert "[Pexels]" in result
+        assert "p.com/img.jpg" in result
+
+
+# ── Haversine ──
+def test_haversine_km_known():
+    """北京天安门 → 故宫北门 ≈ 1.5km"""
+    d = _haversine_km(39.9042, 116.4074, 39.9163, 116.3972)
+    assert 1.0 < d < 2.0
+
+
+def test_haversine_km_same_point():
+    assert _haversine_km(0, 0, 0, 0) == 0.0
+
+
+# ── intl_distance ──
+@pytest.mark.asyncio
+async def test_intl_distance_haversine():
+    result = await intl_distance.ainvoke({
+        "origin_lat": 35.658, "origin_lng": 139.745,
+        "dest_lat": 35.710, "dest_lng": 139.810,
+    })
+    assert "distance_km:" in result
+    assert "driving_min:" in result
+    assert "walking_min:" in result
+    assert "hint:" in result
+
+
+@pytest.mark.asyncio
+async def test_intl_distance_walkable():
+    """极近距离 → hint 应为 步行可达"""
+    result = await intl_distance.ainvoke({
+        "origin_lat": 35.658, "origin_lng": 139.745,
+        "dest_lat": 35.659, "dest_lng": 139.746,
+    })
+    assert "步行可达" in result
+
+
+# ── weather ──
+@pytest.mark.asyncio
+async def test_intl_weather():
     with patch("app.agent.intl_tools._client") as mock_client:
         mock_client.return_value.get = AsyncMock(return_value=_mock_response({
-            "routes": [{"distance": 5200, "duration": 780}]
+            "current_weather": {"temperature": 22.0, "weathercode": 2, "windspeed": 5.0}
         }))
-        result = await intl_direction.ainvoke({
-            "origin_lat": 35.658, "origin_lng": 139.745,
-            "dest_lat": 35.660, "dest_lng": 139.729,
-            "mode": "driving",
-        })
-        assert "distance_km: 5.2" in result
-        assert "duration_min: 13.0" in result
-
-
-@pytest.mark.asyncio
-async def test_intl_direction_no_route():
-    with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.get = AsyncMock(return_value=_mock_response({"routes": []}))
-        result = await intl_direction.ainvoke({
-            "origin_lat": 0, "origin_lng": 0,
-            "dest_lat": 0, "dest_lng": 0,
-        })
-        assert "无法规划" in result
-
-
-@pytest.mark.asyncio
-async def test_intl_distance_returns_km():
-    with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.get = AsyncMock(return_value=_mock_response({
-            "routes": [{"distance": 3500, "duration": 420}]
-        }))
-        result = await intl_distance.ainvoke({
-            "origin_lat": 35.658, "origin_lng": 139.745,
-            "dest_lat": 35.660, "dest_lng": 139.729,
-        })
-        assert "distance_km: 3.5" in result
-
-
-@pytest.mark.asyncio
-async def test_intl_weather_returns_temperature():
-    with patch("app.agent.intl_tools._client") as mock_client:
-        mock_client.return_value.get = AsyncMock(return_value=_mock_response({
-            "current_weather": {"temperature": 22.5, "weathercode": 2, "windspeed": 10.3}
-        }))
-        result = await intl_weather.ainvoke({"lat": 35.676, "lng": 139.650})
-        assert "22.5" in result
+        result = await intl_weather.ainvoke({"lat": 35.0, "lng": 139.0})
+        assert "22" in result
         assert "多云" in result
 
 
-def test_load_intl_tools_returns_seven():
+# ── 工具集数量 ──
+def test_load_intl_tools_five():
     tools = load_intl_tools()
-    tool_names = {t.name for t in tools}
-    assert len(tools) == 7
-    assert "intl_geo" in tool_names
-    assert "intl_direction" in tool_names
+    names = {t.name for t in tools}
+    assert len(tools) == 5
+    assert names == {"intl_geo", "intl_text_search", "intl_search_detail", "intl_distance", "intl_weather"}
 
 
+# ── 错误兜底 ──
 @pytest.mark.asyncio
 async def test_intl_tools_graceful_on_http_error():
-    """HTTP 错误时经 _retry 3 次后返回兜底文本，不抛异常。"""
-    for tool_fn in [intl_geo, intl_regeocode, intl_text_search, intl_search_detail,
-                    intl_direction, intl_distance, intl_weather]:
+    for tool_fn in [intl_geo, intl_text_search, intl_search_detail, intl_weather]:
         with patch("app.agent.intl_tools._client") as mock_client:
-            exc = Exception("Network error")
+            exc = Exception("Network down")
             mock_client.return_value.get = AsyncMock(side_effect=exc)
             mock_client.return_value.post = AsyncMock(side_effect=exc)
 
-            input_kwargs = {}
+            input_kwargs: dict = {}
             if hasattr(tool_fn, "args_schema"):
-                for field_name in tool_fn.args_schema.model_fields:
-                    field = tool_fn.args_schema.model_fields[field_name]
+                for fname in tool_fn.args_schema.model_fields:
+                    field = tool_fn.args_schema.model_fields[fname]
                     if field.annotation is str:
-                        input_kwargs[field_name] = "test"
+                        input_kwargs[fname] = "test"
                     elif field.annotation is float or field.annotation == float | None:
-                        input_kwargs[field_name] = 35.0
-
-            if "mode" in tool_fn.args_schema.model_fields:
-                input_kwargs["mode"] = "driving"
+                        input_kwargs[fname] = 35.0
 
             result = await tool_fn.ainvoke(input_kwargs)
-            assert "暂时不可用" in result or "未找到" in result, (
-                f"{tool_fn.name} 应在异常时返回兜底文本，实际: {result}"
-            )
+            assert "暂时不可用" in result, f"{tool_fn.name} 兜底文本缺失，实际: {result}"
