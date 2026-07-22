@@ -9,31 +9,34 @@ const items: { tab: Tab; label: string; icon: typeof MapPin }[] = [
   { tab: "library", label: "收藏路线", icon: Bookmark },
 ];
 
-/** 底部导航：空气感微浮调导航栏。 */
+/** 底部导航：空气感外挂软悬浮胶囊切片。 */
 export function BottomNavBar() {
   const tab = useAppStore((s) => s.tab);
   const setTab = useAppStore((s) => s.setTab);
   return (
-    <nav className="flex items-center justify-around border-t border-card-border/80 bg-surface/95 px-3 py-2 backdrop-blur">
-      {items.map(({ tab: t, label, icon: Icon }) => {
-        const active = tab === t;
-        return (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            aria-current={active ? "page" : undefined}
-            className={`flex flex-col items-center gap-1 px-4 py-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full ${
-              active
-                ? "bg-primary-container/60 text-primary font-medium shadow-soft"
-                : "text-on-surface-variant hover:text-ink hover:bg-surface-container-low"
-            }`}
-          >
-            <Icon size={19} className={active ? "stroke-[2.25px]" : "stroke-[1.75px]"} />
-            <span className="text-[12px] tracking-tight">{label}</span>
-          </button>
-        );
-      })}
-    </nav>
+    <div className="bg-surface px-4 pb-3 pt-1">
+      <nav className="mx-auto flex max-w-lg items-center justify-around rounded-full border border-card-border/80 bg-surface-container-lowest/90 px-3 py-1.5 shadow-float backdrop-blur">
+        {items.map(({ tab: t, label, icon: Icon }) => {
+          const active = tab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-col items-center gap-0.5 px-3.5 py-1 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full ${
+                active
+                  ? "bg-primary-container/70 text-primary font-medium shadow-soft"
+                  : "text-on-surface-variant hover:text-ink hover:bg-surface-container-low"
+              }`}
+            >
+              <Icon size={18} className={active ? "stroke-[2.25px]" : "stroke-[1.75px]"} />
+              <span className="text-[11px] tracking-tight">{label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
+
 

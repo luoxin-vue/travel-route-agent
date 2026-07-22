@@ -8,12 +8,7 @@ export function TopAppBar() {
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container/70 text-primary shadow-soft">
           <Compass size={18} />
         </div>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1.5">
-            <span className="text-body-md font-semibold tracking-tight text-ink">Concierge</span>
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">随心行程</span>
-          </div>
-        </div>
+        <span className="text-[16px] font-semibold tracking-tight text-ink">Concierge · 随心行程</span>
       </div>
       <div className="flex items-center gap-1">
         <button

@@ -6,13 +6,12 @@ import { streamChat } from "../../lib/api";
 import { toolLabel } from "../../lib/labels";
 import { ThinkingSteps } from "./ThinkingSteps";
 import { ReasoningBlock } from "./ReasoningBlock";
-import { LogDivider } from "./LogDivider";
 
-/** 空状态的生活感灵感预设（带舒适图标）。 */
+/** 灵感预设标签（带 emoji 贴纸）。 */
 const PRESETS = [
-  { label: "上海周末漫步", icon: Compass, prompt: "帮我规划上海周末2日游，2-3个核心景点" },
-  { label: "成都美食巡礼", icon: UtensilsCrossed, prompt: "帮我规划成都2日游，重点美食和熊猫基地" },
-  { label: "杭州西湖惬意一日", icon: Trees, prompt: "帮我规划杭州西湖一日游" },
+  { label: "上海漫步 ☕", icon: Compass, prompt: "帮我规划上海周末2日游，2-3个核心景点" },
+  { label: "成都美食 🐼", icon: UtensilsCrossed, prompt: "帮我规划成都2日游，重点美食和熊猫基地" },
+  { label: "西湖惬意 🚣", icon: Trees, prompt: "帮我规划杭州西湖一日游" },
 ];
 
 export function ChatView() {
@@ -84,9 +83,9 @@ export function ChatView() {
 
   const rightStatus = streaming
     ? telemetry.tool
-      ? `正在调用 ${toolLabel(telemetry.tool)}`
-      : "生成行程中…"
-    : "随心管家服务已就绪";
+      ? `正在执行 ${toolLabel(telemetry.tool)}`
+      : "行程数据合成中…"
+    : "Concierge 路线管家已就绪";
 
   return (
     <div className="flex h-full flex-col bg-surface">
@@ -100,12 +99,12 @@ export function ChatView() {
                   <Sparkles size={18} />
                 </div>
                 <div>
-                  <h2 className="text-body-md font-semibold text-ink">随心行程管家已就绪</h2>
-                  <p className="text-[12px] text-on-surface-variant/80">提供精致数据与高德地图联动规划</p>
+                  <h2 className="text-body-md font-semibold text-ink">Concierge 路线规划管家</h2>
+                  <p className="text-[12px] text-on-surface-variant/80">提供事实结构化行程数据与地图点位联动</p>
                 </div>
               </div>
-              <p className="mb-5 text-body-md text-on-surface leading-relaxed">
-                输入您的目的地、出行天数或偏好（如美食、休闲、文化），为您生成结构化行程：
+              <p className="mb-4 text-body-md text-on-surface leading-relaxed">
+                请输入目的地、出行天数或偏好（如美食、景点、交通）：
               </p>
               <div className="flex flex-wrap gap-2.5">
                 {PRESETS.map((p) => {
@@ -130,8 +129,8 @@ export function ChatView() {
           const isLast = i === messages.length - 1;
           if (m.role === "user") {
             return (
-              <div key={i} className="flex flex-col items-end gap-1.5">
-                <LogDivider label="我的旅行意图" side="right" />
+              <div key={i} className="flex flex-col items-end gap-1">
+                <div className="text-[12px] font-medium text-on-surface-variant/60">用户指令</div>
                 <div className="max-w-[82%] rounded-2xl rounded-tr-xs bg-primary px-4 py-3 text-body-md text-on-primary shadow-soft">
                   {m.content}
                 </div>
@@ -139,8 +138,10 @@ export function ChatView() {
             );
           }
           return (
-            <div key={i} className="flex flex-col gap-1.5">
-              <LogDivider label={isLast && streaming ? "规划行程中" : "随心管家"} side="left" />
+            <div key={i} className="flex flex-col gap-1">
+              <div className="text-[12px] font-medium text-on-surface-variant/60">
+                {isLast && streaming ? "行程生成中" : "Concierge"}
+              </div>
 
               <div className="max-w-3xl rounded-2xl rounded-tl-xs border border-card-border bg-surface-container-lowest p-5 shadow-float">
                 <ReasoningBlock text={m.reasoning ?? ""} active={isLast && streaming && !m.content} />
@@ -152,7 +153,7 @@ export function ChatView() {
                   (m.steps?.length ?? 0) === 0 && (
                     <div className="flex items-center gap-2 text-label-sm text-on-surface-variant">
                       <Loader2 size={14} className="animate-spin text-primary" />
-                      正在为您精心规划…
+                      行程数据合成中…
                     </div>
                   )}
                 {m.content && (
@@ -160,21 +161,21 @@ export function ChatView() {
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                 )}
-                {/* 建议操作：行程生成后给出导航入口 */}
+                {/* 生成后推荐操作入口 */}
                 {isLast && !streaming && itinerary && m.content && (
                   <div className="mt-4 flex items-center gap-2 border-t border-card-border/80 pt-3.5">
-                    <span className="text-[12px] font-medium text-on-surface-variant">为您生成：</span>
+                    <span className="text-[12px] font-medium text-on-surface-variant">生成结果：</span>
                     <button
                       onClick={() => setTab("plan")}
                       className="flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-[12px] font-medium text-on-primary shadow-soft transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      <CalendarRange size={14} /> 查看完整计划
+                      <CalendarRange size={14} /> 查看行程计划
                     </button>
                     <button
                       onClick={() => setTab("map")}
                       className="flex items-center gap-1.5 rounded-full border border-card-border bg-surface-container-low px-3.5 py-1.5 text-[12px] font-medium text-ink transition-colors hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      <MapPin size={14} className="text-secondary" /> 查看地图路线
+                      <MapPin size={14} className="text-secondary" /> 查看路线地图
                     </button>
                   </div>
                 )}
@@ -185,8 +186,23 @@ export function ChatView() {
       </div>
 
       {/* 浮动空气感搜索输入岛 */}
-      <div className="border-t border-card-border/60 bg-surface/80 px-4 pb-3 pt-3 backdrop-blur">
+      <div className="border-t border-card-border/60 bg-surface/80 px-4 pb-3 pt-2.5 backdrop-blur">
         <div className="mx-auto max-w-3xl">
+          {/* 搜索岛上方的灵感 Preset 快捷标签 */}
+          <div className="no-scrollbar mb-2 flex items-center gap-2 overflow-x-auto">
+            <span className="shrink-0 text-[11px] font-medium text-on-surface-variant/70">快速指令:</span>
+            {PRESETS.map((p) => (
+              <button
+                key={p.label}
+                onClick={() => send(p.prompt)}
+                disabled={streaming}
+                className="shrink-0 rounded-full border border-card-border/80 bg-surface-container-lowest px-3 py-1 text-[12px] font-medium text-ink shadow-soft transition-all hover:border-primary/50 hover:bg-primary-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center rounded-full border border-card-border bg-surface-container-lowest px-4 py-1.5 shadow-float transition-colors focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/20">
             <Compass size={18} className="mr-2.5 text-primary shrink-0" />
             <input
@@ -194,7 +210,7 @@ export function ChatView() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               disabled={streaming}
-              placeholder="想去哪里？输入目的地或天数偏好..."
+              placeholder="输入目的地或出行偏好..."
               aria-label="输入旅行意图或下一站"
               className="flex-1 border-none bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-on-surface-variant/50"
             />
@@ -208,7 +224,7 @@ export function ChatView() {
             </button>
           </div>
           <div className="mt-2 flex justify-between px-3 text-[11px] font-medium text-on-surface-variant/60">
-            <span>Concierge Agent v2.0</span>
+            <span>Concierge Route System</span>
             <span className="flex items-center gap-1.5">
               {streaming && (
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
@@ -221,4 +237,5 @@ export function ChatView() {
     </div>
   );
 }
+
 

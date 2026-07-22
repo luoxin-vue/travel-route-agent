@@ -42,7 +42,7 @@ export type RouteStatus = "planned" | "completed";
 /** 路线库条目：包一层元数据（Itinerary 本身无 id/日期/状态字段）。 */
 export interface SavedRoute {
   id: string;
-  savedAt: number; // epoch ms
+  savedAt: number; // 毫秒时间戳
   status: RouteStatus;
   favorite: boolean;
   itinerary: Itinerary;
