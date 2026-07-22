@@ -1,6 +1,7 @@
 """/api/chat —— SSE 流式端点。推送三类事件：token / tool / itinerary。"""
 import json
 import traceback
+from typing import Optional
 
 from fastapi import APIRouter
 from langchain_core.messages import HumanMessage
@@ -12,9 +13,15 @@ from app.agent.graph import get_agent
 router = APIRouter(prefix="/api", tags=["chat"])
 
 
+class TravelPreferences(BaseModel):
+    defaultProtocol: str = "TRANSIT"
+    pace: str = "relaxed"
+
+
 class ChatRequest(BaseModel):
     thread_id: str
     message: str
+    travel_preferences: Optional[TravelPreferences] = None
 
 
 def _sse(event: str, payload: dict) -> dict:
@@ -35,11 +42,29 @@ def _summarize_input(tool_input) -> str:
 
 
 
+_PROTOCOL_LABELS = {"TRANSIT": "公共交通", "DRIVING": "驾车自驾", "WALKING": "步行"}
+_PACE_LABELS = {"relaxed": "轻松休闲（每天 2~3 个精选景点）", "compact": "充实紧凑（高效打卡）"}
+
+
+def _preference_context(prefs: TravelPreferences | None) -> str:
+    if not prefs:
+        return ""
+    protocol = _PROTOCOL_LABELS.get(prefs.defaultProtocol, prefs.defaultProtocol)
+    pace = _PACE_LABELS.get(prefs.pace, prefs.pace)
+    return (
+        f"\n\n【用户偏好】\n"
+        f"- 默认出行方式：{protocol}\n"
+        f"- 行程节奏：{pace}\n"
+        f"规划行程时请优先考虑以上偏好。"
+    )
+
+
 @router.post("/chat")
 async def chat(req: ChatRequest):
     # recursion_limit 默认 25；推理模型工具调用更多，放宽到 50 留足余量。
     config = {"configurable": {"thread_id": req.thread_id}, "recursion_limit": 50}
-    inputs = {"messages": [HumanMessage(content=req.message)]}
+    pref_context = _preference_context(req.travel_preferences)
+    inputs = {"messages": [HumanMessage(content=req.message + pref_context)]}
 
     async def event_gen():
         try:

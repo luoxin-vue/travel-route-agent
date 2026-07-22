@@ -1,5 +1,5 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
-import type { Itinerary } from "../types";
+import type { Itinerary, TravelPreferences } from "../types";
 
 export interface ToolEvent {
   id: string;
@@ -22,12 +22,13 @@ export async function streamChat(
   threadId: string,
   message: string,
   handlers: ChatHandlers,
+  preferences?: TravelPreferences,
   signal?: AbortSignal,
 ): Promise<void> {
   await fetchEventSource("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread_id: threadId, message }),
+    body: JSON.stringify({ thread_id: threadId, message, travel_preferences: preferences }),
     signal,
     openWhenHidden: true,
     onmessage(ev) {

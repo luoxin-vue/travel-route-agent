@@ -21,6 +21,7 @@ export function ChatView() {
     streaming,
     telemetry,
     itinerary,
+    travelPreferences,
     addMessage,
     appendToLastAssistant,
     appendReasoning,
@@ -75,7 +76,7 @@ export function ChatView() {
           setStreaming(false);
           setTelemetry({ tool: null, status: "idle" });
         },
-      });
+      }, travelPreferences);
     } catch {
       setStreaming(false);
     }
