@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     # 服务
     cors_origins: str = "http://localhost:5173"
 
+    # 国际图片搜索（可选，不填跳过对应渠道）
+    unsplash_access_key: str = ""
+    flickr_api_key: str = ""
+
     # 出口代理（本机若需经代理访问外网，如 Clash 的 http://127.0.0.1:7897）。
     # 留空表示直连。设置后会注入 HTTP(S)_PROXY，LLM 与高德 MCP 请求均走它。
     proxy_url: str = ""

@@ -1,5 +1,5 @@
-"""国际目的地工具集 —— Photon（OSM 搜索）+ Haversine（本地距离）+ Wikipedia/Pexels（图片）。
-全部零注册零费用（Pexels 可选，邮箱即可不绑卡）。"""
+"""国际目的地工具集 —— Photon（OSM 搜索）+ Haversine（本地距离）+ Wikipedia/Pexels/Unsplash/Flickr（图片）。
+全部零注册零费用（Pexels/Unsplash 可选，邮箱即可不绑卡；Flickr 可选）。"""
 import asyncio
 import math
 import os
@@ -117,6 +117,13 @@ async def _photon_search(
     return results
 
 
+# ── 占位图 —— 所有渠道无结果时的兜底 ──
+_PLACEHOLDER_IMAGE = (
+    "https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg"
+    "?auto=compress&cs=tinysrgb&w=400"
+)
+
+
 # ── 工具实现 ──
 @tool(args_schema=GeoInput)
 async def intl_geo(address: str) -> str:
@@ -158,13 +165,19 @@ async def intl_text_search(
 @tool(args_schema=SearchDetailInput)
 async def intl_search_detail(name: str) -> str:
     """查询国际景点的中文简介与封面照片。
-    Wikipedia（zh→en）→ Wikimedia Commons → Pexels 三级兜底。"""
+    Wikipedia（zh→en）→ Wikimedia Commons → Pexels → Unsplash → Flickr 五级兜底，全空返回占位图。"""
     async def _call():
         client = _client()
         zh_ok = False
         pexels_ok = False
+        unsplash_ok = False
+        flickr_ok = False
+        description = ""
+        image_url = ""
 
-        # 1) Wikipedia —— zh 优先
+        # 1) Wikipedia 搜索 —— zh 优先
+        page_id = None
+        wiki_api = None
         zh_resp = await client.get("https://zh.wikipedia.org/w/api.php", params={
             "action": "query", "list": "search", "srsearch": name,
             "srlimit": 1, "format": "json",
@@ -183,44 +196,46 @@ async def intl_search_detail(name: str) -> str:
             en_resp.raise_for_status()
             en_data = en_resp.json()
             en_pages = en_data.get("query", {}).get("search", [])
-            if not en_pages:
-                return f"[intl_search_detail] Wikipedia 未找到 '{name}'"
-            page_id, wiki_api = en_pages[0]["pageid"], "https://en.wikipedia.org/w/api.php"
+            if en_pages:
+                page_id, wiki_api = en_pages[0]["pageid"], "https://en.wikipedia.org/w/api.php"
 
-        detail_resp = await client.get(wiki_api, params={
-            "action": "query", "prop": "extracts|pageimages",
-            "exintro": 1, "explaintext": 1,
-            "pithumbsize": 400, "pageids": page_id, "format": "json",
-        })
-        detail_resp.raise_for_status()
-        detail_data = detail_resp.json()
-        page = detail_data.get("query", {}).get("pages", {}).get(str(page_id), {})
-        description = page.get("extract", "")[:300]
-        thumbnail = page.get("thumbnail") or {}
-        image_url = thumbnail.get("source") or ""
+        # 2) Wikipedia 详情（有页面时才查）
+        if page_id:
+            detail_resp = await client.get(wiki_api, params={
+                "action": "query", "prop": "extracts|pageimages",
+                "exintro": 1, "explaintext": 1,
+                "pithumbsize": 400, "pageids": page_id, "format": "json",
+            })
+            detail_resp.raise_for_status()
+            detail_data = detail_resp.json()
+            page = detail_data.get("query", {}).get("pages", {}).get(str(page_id), {})
+            description = page.get("extract", "")[:300]
+            thumbnail = page.get("thumbnail") or {}
+            image_url = thumbnail.get("source") or ""
 
-        # 2) Wikimedia Commons 兜底
-        if not image_url:
-            commons_resp = await client.get(
-                "https://commons.wikimedia.org/w/api.php", params={
-                    "action": "query", "list": "search",
-                    "srsearch": name, "srnamespace": 6,
-                    "srlimit": 1, "format": "json",
-                },
-            )
-            commons_resp.raise_for_status()
-            commons_data = commons_resp.json()
-            commons_pages = commons_data.get("query", {}).get("search", [])
-            if commons_pages:
-                title = commons_pages[0]["title"]
-                # 去掉 "File:" 前缀
-                clean_title = title[5:] if title.startswith("File:") else title
-                image_url = (
-                    "https://commons.wikimedia.org/wiki/Special:FilePath/"
-                    f"{clean_title.replace(' ', '_')}?width=400"
+            # 3) Wikimedia Commons 兜底
+            if not image_url:
+                commons_resp = await client.get(
+                    "https://commons.wikimedia.org/w/api.php", params={
+                        "action": "query", "list": "search",
+                        "srsearch": name, "srnamespace": 6,
+                        "srlimit": 1, "format": "json",
+                    },
                 )
+                commons_resp.raise_for_status()
+                commons_data = commons_resp.json()
+                commons_pages = commons_data.get("query", {}).get("search", [])
+                if commons_pages:
+                    title = commons_pages[0]["title"]
+                    clean_title = title[5:] if title.startswith("File:") else title
+                    image_url = (
+                        "https://commons.wikimedia.org/wiki/Special:FilePath/"
+                        f"{clean_title.replace(' ', '_')}?width=400"
+                    )
+        else:
+            description = f"Wikipedia 未收录 '{name}'"
 
-        # 3) Pexels 第三兜底（需 PEXELS_API_KEY 环境变量，不填跳过）
+        # 4) Pexels 兜底（需 PEXELS_API_KEY 环境变量，不填跳过）
         if not image_url:
             pexels_key = os.getenv("PEXELS_API_KEY", "").strip()
             if pexels_key:
@@ -239,7 +254,65 @@ async def intl_search_detail(name: str) -> str:
                 except Exception:
                     pass  # Pexels 不可用时静默跳过
 
-        source_tag = "[Pexels]" if pexels_ok else ("[中文]" if zh_ok else "[英文]")
+        # 5) Unsplash 兜底（需 UNSPLASH_ACCESS_KEY 环境变量，不填跳过）
+        if not image_url:
+            unsplash_key = os.getenv("UNSPLASH_ACCESS_KEY", "").strip()
+            if unsplash_key:
+                try:
+                    unsplash_resp = await client.get(
+                        "https://api.unsplash.com/search/photos",
+                        params={"query": name, "per_page": 1},
+                        headers={"Authorization": f"Client-ID {unsplash_key}"},
+                    )
+                    unsplash_resp.raise_for_status()
+                    unsplash_data = unsplash_resp.json()
+                    unsplash_results = unsplash_data.get("results", [])
+                    if unsplash_results:
+                        image_url = unsplash_results[0]["urls"]["small"]
+                        unsplash_ok = True
+                except Exception:
+                    pass  # Unsplash 不可用时静默跳过
+
+        # 6) Flickr 兜底（需 FLICKR_API_KEY 环境变量，不填跳过）
+        if not image_url:
+            flickr_key = os.getenv("FLICKR_API_KEY", "").strip()
+            if flickr_key:
+                try:
+                    flickr_resp = await client.get(
+                        "https://www.flickr.com/services/rest/",
+                        params={
+                            "method": "flickr.photos.search",
+                            "api_key": flickr_key,
+                            "text": name,
+                            "per_page": 1,
+                            "license": "1,2,4,5,7,8,9,10",
+                            "format": "json",
+                            "nojsoncallback": 1,
+                        },
+                    )
+                    flickr_resp.raise_for_status()
+                    flickr_data = flickr_resp.json()
+                    flickr_photos = flickr_data.get("photos", {}).get("photo", [])
+                    if flickr_photos:
+                        p = flickr_photos[0]
+                        image_url = (
+                            f"https://farm{p['farm']}.staticflickr.com/"
+                            f"{p['server']}/{p['id']}_{p['secret']}_z.jpg"
+                        )
+                        flickr_ok = True
+                except Exception:
+                    pass  # Flickr 不可用时静默跳过
+
+        # 7) 所有渠道无结果 → 通用占位图
+        if not image_url:
+            image_url = _PLACEHOLDER_IMAGE
+
+        source_tag = (
+            "[Flickr]" if flickr_ok else
+            "[Unsplash]" if unsplash_ok else
+            "[Pexels]" if pexels_ok else
+            ("[中文]" if zh_ok else "[英文]")
+        )
         result = f"{source_tag} description: {description}"
         if image_url:
             result += f"\nimage_url: {image_url}"

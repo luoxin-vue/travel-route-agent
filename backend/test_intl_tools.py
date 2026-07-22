@@ -14,6 +14,7 @@ from app.agent.intl_tools import (
     intl_search_detail,
     intl_distance,
     intl_weather,
+    _PLACEHOLDER_IMAGE,
     load_intl_tools,
 )
 
@@ -102,24 +103,23 @@ async def test_intl_search_detail_zh():
 
 @pytest.mark.asyncio
 async def test_intl_search_detail_pexels_fallback():
-    """Wikipedia + Wikimedia 空 → Pexels 兜底 [Pexels]"""
+    """Wikipedia + Wikimedia 空 → Pexels 空 → 占位图兜底。"""
     with patch("app.agent.intl_tools._client") as mock_client, \
          patch.dict(os.environ, {"PEXELS_API_KEY": "test-key"}):
         calls = 0
         responses = [
             _mock_response({"query": {"search": []}}),          # zh wiki 空
-            _mock_response({"query": {"search": []}}),          # en wiki 空 → "未找到"
+            _mock_response({"query": {"search": []}}),          # en wiki 空
+            _mock_response({}),                                  # Pexels 空
         ]
         async def get_side(url, **kw):
             nonlocal calls
             calls += 1
-            if calls <= len(responses):
-                return responses[calls - 1]
-            return _mock_response({})
+            return responses[min(calls - 1, len(responses) - 1)]
         mock_client.return_value.get = AsyncMock(side_effect=get_side)
         result = await intl_search_detail.ainvoke({"name": "Tokyo Tower"})
-        assert "未找到" in result  # Wikipedia 都无结果，直接返回兜底
-        # Note: Pexels 不会在这一步触发，因为 Wikipedia 返回了 "未找到" 就提前退出了
+        assert "未收录" in result
+        assert _PLACEHOLDER_IMAGE in result
 
 
 @pytest.mark.asyncio
@@ -167,6 +167,139 @@ async def test_intl_search_detail_commons_strips_file_prefix():
         result = await intl_search_detail.ainvoke({"name": "Test"})
         assert "My_Photo.jpg" in result
         assert "File:" not in result
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_unsplash_fallback():
+    """Wikipedia 无图 → Wikimedia 无 → Pexels 无 → Unsplash 兜底 [Unsplash]"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {"PEXELS_API_KEY": "test-key", "UNSPLASH_ACCESS_KEY": "unsplash-key"}):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 99}]}}),   # zh search OK
+            _mock_response({"query": {"pages": {"99": {
+                "extract": "A place.", "thumbnail": None,
+            }}}}),  # zh detail 无 thumbnail
+            _mock_response({"query": {"search": []}}),                  # Wikimedia 空
+            _mock_response({}),                                          # Pexels 空
+            _mock_response({"results": [{"urls": {"small": "https://u.com/img.jpg"}}]}),  # Unsplash OK
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Rare Place"})
+        assert "[Unsplash]" in result
+        assert "u.com/img.jpg" in result
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_placeholder_fallback():
+    """所有渠道（含 Unsplash）无结果 → 占位图兜底"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {"PEXELS_API_KEY": "test-key", "UNSPLASH_ACCESS_KEY": "unsplash-key"}):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 1}]}}),   # zh search OK
+            _mock_response({"query": {"pages": {"1": {
+                "extract": "A place.", "thumbnail": None,
+            }}}}),  # zh detail 无 thumbnail
+            _mock_response({"query": {"search": []}}),                  # Wikimedia 空
+            _mock_response({}),                                          # Pexels 空
+            _mock_response({}),                                          # Unsplash 空
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Lost Place"})
+        assert _PLACEHOLDER_IMAGE in result
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_wiki_empty_still_searches_images():
+    """Wikipedia 无页面 → 跳过详情 → 仍搜索 Pexels/Unsplash → 占位图"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {"PEXELS_API_KEY": "test-key", "UNSPLASH_ACCESS_KEY": "unsplash-key"}):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": []}}),   # zh wiki 空
+            _mock_response({"query": {"search": []}}),   # en wiki 空
+            _mock_response({}),                           # Pexels 空
+            _mock_response({}),                           # Unsplash 空
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Unknown POI"})
+        assert "未收录" in result
+        assert _PLACEHOLDER_IMAGE in result
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_flickr_fallback():
+    """Wikipedia 无图 → Wikimedia 无 → Pexels 无 → Unsplash 无 → Flickr 兜底 [Flickr]"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {
+             "PEXELS_API_KEY": "test-key",
+             "UNSPLASH_ACCESS_KEY": "unsplash-key",
+             "FLICKR_API_KEY": "flickr-key",
+         }):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 99}]}}),   # zh search OK
+            _mock_response({"query": {"pages": {"99": {
+                "extract": "A place.", "thumbnail": None,
+            }}}}),  # zh detail 无 thumbnail
+            _mock_response({"query": {"search": []}}),                  # Wikimedia 空
+            _mock_response({}),                                          # Pexels 空
+            _mock_response({}),                                          # Unsplash 空
+            _mock_response({"photos": {"photo": [{
+                "id": "123", "server": "4567", "secret": "abc",
+                "farm": 5,
+            }]}}),  # Flickr OK
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Remote Place"})
+        assert "[Flickr]" in result
+        assert "staticflickr.com" in result
+
+
+@pytest.mark.asyncio
+async def test_intl_search_detail_all_sources_fail_placeholder():
+    """全部五级（含 Flickr）无结果 → 占位图兜底"""
+    with patch("app.agent.intl_tools._client") as mock_client, \
+         patch.dict(os.environ, {
+             "PEXELS_API_KEY": "test-key",
+             "UNSPLASH_ACCESS_KEY": "unsplash-key",
+             "FLICKR_API_KEY": "flickr-key",
+         }):
+        calls = 0
+        responses = [
+            _mock_response({"query": {"search": [{"pageid": 1}]}}),   # zh search OK
+            _mock_response({"query": {"pages": {"1": {
+                "extract": "A place.", "thumbnail": None,
+            }}}}),  # zh detail 无 thumbnail
+            _mock_response({"query": {"search": []}}),                  # Wikimedia 空
+            _mock_response({}),                                          # Pexels 空
+            _mock_response({}),                                          # Unsplash 空
+            _mock_response({}),                                          # Flickr 空
+        ]
+        async def get_side(url, **kw):
+            nonlocal calls
+            calls += 1
+            return responses[min(calls - 1, len(responses) - 1)]
+        mock_client.return_value.get = AsyncMock(side_effect=get_side)
+        result = await intl_search_detail.ainvoke({"name": "Nowhere"})
+        assert _PLACEHOLDER_IMAGE in result
 
 
 # ── Haversine ──
