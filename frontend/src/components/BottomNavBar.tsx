@@ -2,7 +2,7 @@ import { MessageCircle, CalendarRange, MapPin, Bookmark } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import type { Tab } from "../types";
 
-const items: { tab: Tab; label: string; icon: typeof MapPin }[] = [
+const NAV_TABS: { tab: Tab; label: string; icon: typeof MapPin }[] = [
   { tab: "chat", label: "灵感对话", icon: MessageCircle },
   { tab: "plan", label: "行程计划", icon: CalendarRange },
   { tab: "map", label: "路线地图", icon: MapPin },
@@ -16,7 +16,7 @@ export function BottomNavBar() {
   return (
     <div className="bg-surface px-4 pb-3 pt-1">
       <nav className="mx-auto flex max-w-lg items-center justify-around rounded-full border border-card-border/80 bg-surface-container-lowest/90 px-3 py-1.5 shadow-float backdrop-blur">
-        {items.map(({ tab: t, label, icon: Icon }) => {
+        {NAV_TABS.map(({ tab: t, label, icon: Icon }) => {
           const active = tab === t;
           return (
             <button

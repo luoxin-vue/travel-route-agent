@@ -24,8 +24,8 @@ interface AppState {
   appendReasoning: (text: string) => void;
   pushStep: (step: ThinkingStep) => void;
   resolveStep: (id: string) => void;
-  setItinerary: (i: Itinerary) => void;
-  saveRoute: (i: Itinerary) => void;
+  setItinerary: (targetItinerary: Itinerary) => void;
+  saveRoute: (targetItinerary: Itinerary) => void;
   toggleRouteStatus: (id: string) => void;
   toggleRouteFavorite: (id: string) => void;
   deleteRoute: (id: string) => void;
@@ -35,7 +35,6 @@ interface AppState {
   setStreaming: (b: boolean) => void;
 }
 
-/** 对最后一条 assistant 消息做不可变更新的辅助函数。 */
 function updateLastAssistant(
   messages: ChatMessage[],
   fn: (m: ChatMessage) => ChatMessage,
@@ -48,9 +47,8 @@ function updateLastAssistant(
   return msgs;
 }
 
-/** Itinerary 无唯一键，用「标题|天数」做去重签名。 */
-function routeSignature(i: Itinerary): string {
-  return `${i.title}|${i.days}`;
+function routeSignature(targetItinerary: Itinerary): string {
+  return `${targetItinerary.title}|${targetItinerary.days}`;
 }
 
 function newRouteId(): string {
@@ -154,16 +152,16 @@ export const useAppStore = create<AppState>()(
         set((s) => ({
           savedRoutes: s.savedRoutes.map((r) => {
             if (r.id !== routeId) return r;
-            const set = new Set(r.completedNodes);
-            if (set.has(key)) set.delete(key);
-            else set.add(key);
+            const completedSet = new Set(r.completedNodes);
+            if (completedSet.has(key)) completedSet.delete(key);
+            else completedSet.add(key);
             const stopKeys = r.itinerary.nodes
               .filter(isStopNode)
               .map(nodeKey);
-            const allDone = stopKeys.length > 0 && stopKeys.every((k) => set.has(k));
+            const allDone = stopKeys.length > 0 && stopKeys.every((k) => completedSet.has(k));
             return {
               ...r,
-              completedNodes: [...set],
+              completedNodes: [...completedSet],
               status: allDone ? ("completed" as const) : ("planned" as const),
             };
           }),

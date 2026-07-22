@@ -63,30 +63,6 @@ function protocolIcon(protocol?: string | null): LucideIcon {
   }
 }
 
-/** 生活感优雅动作按钮。 */
-function ActionBtn({
-  children,
-  onClick,
-  active,
-}: {
-  children: string;
-  onClick?: () => void;
-  active?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-[12px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-        active
-          ? "border-secondary bg-secondary/15 text-secondary shadow-soft"
-          : "border-card-border bg-surface-container-low/70 text-on-surface-variant hover:bg-surface-container hover:text-ink"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 /** 交通衔接：精致轻柔连接块。 */
 function TransportLink({ node }: { node: ItineraryNode }) {
   const Icon = protocolIcon(node.protocol);
@@ -97,7 +73,7 @@ function TransportLink({ node }: { node: ItineraryNode }) {
         <Icon size={16} className="text-secondary shrink-0" />
         <span className="font-medium text-ink">{node.name}</span>
         {label ? <span className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface-variant">{label}</span> : null}
-        {node.start_time ? <span className="ml-auto text-[12px] tabular-nums text-on-surface-variant/70">{node.start_time}</span> : null}
+        {node.start_time ? <span className="ml-auto text-[12px] tabular-nums font-mono text-on-surface-variant/70">{node.start_time}</span> : null}
       </div>
     </div>
   );
@@ -117,9 +93,9 @@ function StopCard({
 
   return (
     <div className="relative mb-6 pl-10">
-      {/* 节点圆点：完成=鼠尾草绿勾，过夜=陶土暖色，普通=轻柔环 */ }
+      {/* 节点圆点：完成=鼠尾草绿勾，过夜=陶土暖色，普通=轻柔环，精确对齐 left-2 轴心 */ }
       <span
-        className={`absolute left-0 top-3.5 z-10 flex h-4 w-4 -translate-x-1.5 items-center justify-center rounded-full transition-all ${
+        className={`absolute left-2 top-3.5 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full transition-all ${
           completed
             ? "bg-secondary text-white ring-4 ring-surface"
             : overnight
@@ -131,7 +107,7 @@ function StopCard({
       </span>
 
       <div
-        className={`rounded-2xl border border-card-border bg-surface-container-lowest p-5 shadow-float transition-all ${
+        className={`airy-card rounded-2xl p-5 ${
           overnight ? "border-t-4 border-t-primary" : ""
         }`}
       >
@@ -146,11 +122,20 @@ function StopCard({
             <div />
           )}
           <div className="flex shrink-0 gap-1.5">
-            <ActionBtn>编辑</ActionBtn>
+            <button className="rounded-full border border-card-border bg-surface-container-low/70 px-3 py-1 text-[12px] font-medium text-on-surface-variant hover:bg-surface-container hover:text-ink transition-all">
+              编辑
+            </button>
             {onToggle ? (
-              <ActionBtn active={completed} onClick={onToggle}>
+              <button
+                onClick={onToggle}
+                className={`rounded-full border px-3 py-1 text-[12px] font-medium transition-all ${
+                  completed
+                    ? "border-secondary bg-secondary/15 text-secondary shadow-soft"
+                    : "border-card-border bg-surface-container-low/70 text-on-surface-variant hover:bg-surface-container hover:text-ink"
+                }`}
+              >
                 {completed ? "已打卡" : "标记完成"}
-              </ActionBtn>
+              </button>
             ) : null}
           </div>
         </div>
@@ -192,7 +177,7 @@ function StopCard({
             </span>
           )}
           {node.booking_id && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 tabular-nums">
               <BedDouble size={14} className="text-on-surface-variant" />
               预约号: {node.booking_id}
             </span>
@@ -223,8 +208,8 @@ export function RouteTimeline({
       </h2>
 
       <div className="relative">
-        {/* 竖向虚线 */}
-        <div className="timeline-dotted absolute bottom-0 left-[0px] top-0 w-px" />
+        {/* 竖向虚线：精确对齐 left-2 轴心 */}
+        <div className="timeline-dotted absolute bottom-0 left-2 top-0 w-px" />
 
         {itinerary.nodes.map((node, i) =>
           node.type === "transport" ? (

@@ -1,0 +1,6 @@
+interface:
+  display_name: "kaifa"
+  short_description: "GPT-5.5 plans and reviews; Reasonix and DeepSeek implement."
+  default_prompt: "Use $kaifa to plan the task, prepare the implementation handoff, and finish with review and QA."
+policy:
+  allow_implicit_invocation: true

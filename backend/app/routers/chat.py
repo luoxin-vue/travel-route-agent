@@ -17,22 +17,22 @@ class ChatRequest(BaseModel):
     message: str
 
 
-def _sse(event: str, data: dict) -> dict:
-    return {"event": event, "data": json.dumps(data, ensure_ascii=False)}
+def _sse(event: str, payload: dict) -> dict:
+    return {"event": event, "data": json.dumps(payload, ensure_ascii=False)}
 
 
-def _summarize_input(data) -> str:
-    """从工具入参里提取一句话摘要，用于前端「思考过程」展示。"""
-    if not isinstance(data, dict):
+def _summarize_input(tool_input) -> str:
+    if not isinstance(tool_input, dict):
         return ""
     for key in ("keywords", "keyword", "address", "location", "name", "city", "instruction"):
-        val = data.get(key)
-        if val:
-            return str(val)[:40]
-    origin, dest = data.get("origin"), data.get("destination")
+        param_value = tool_input.get(key)
+        if param_value:
+            return str(param_value)[:40]
+    origin, dest = tool_input.get("origin"), tool_input.get("destination")
     if origin and dest:
         return f"{origin} → {dest}"
     return ""
+
 
 
 @router.post("/chat")

@@ -3,10 +3,8 @@ import { useAppStore } from "../../store/useAppStore";
 import { SmartImage } from "../../components/SmartImage";
 import type { SavedRoute } from "../../types";
 
-function formatSavedAt(ts: number): string {
-  const d = new Date(ts);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function formatSavedAt(timestamp: number): string {
+  return new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" }).format(timestamp);
 }
 
 export function RouteCard({ route }: { route: SavedRoute }) {
@@ -24,7 +22,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
   const completed = route.status === "completed";
 
   return (
-    <div className="rounded-2xl border border-card-border bg-surface-container-lowest group flex flex-col overflow-hidden shadow-float transition-all hover:shadow-card">
+    <div className="airy-card group flex flex-col overflow-hidden rounded-2xl">
 
       {/* 封面图 */}
       <div className="relative h-40 overflow-hidden bg-surface-container-low">

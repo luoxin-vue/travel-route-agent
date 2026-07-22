@@ -29,7 +29,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        mono: ["Inter", "system-ui", "sans-serif"], // 全面弃用 JetBrains Mono，统一保持高易读无衬线
+        mono: ["'JetBrains Mono'", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       fontSize: {
         "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "600" }],

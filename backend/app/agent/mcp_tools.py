@@ -34,15 +34,15 @@ def _with_retry(tool: BaseTool) -> BaseTool:
 
 
 def _server_config() -> dict:
-    s = get_settings()
-    transport = s.amap_mcp_transport
+    settings = get_settings()
+    transport = settings.amap_mcp_transport
 
     if transport == "stdio":
         # 本地用 npx 启动官方高德 MCP Server。
         # 合并当前环境（含 HTTP(S)_PROXY），保证本地服务的 REST 请求也走代理。
         import os
 
-        env = {**os.environ, "AMAP_MAPS_API_KEY": s.amap_maps_api_key}
+        env = {**os.environ, "AMAP_MAPS_API_KEY": settings.amap_maps_api_key}
         return {
             "amap": {
                 "transport": "stdio",

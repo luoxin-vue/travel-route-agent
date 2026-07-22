@@ -32,25 +32,25 @@ export async function streamChat(
     openWhenHidden: true,
     onmessage(ev) {
       if (!ev.event) return;
-      const data = ev.data ? JSON.parse(ev.data) : {};
+      const eventPayload = ev.data ? JSON.parse(ev.data) : {};
       switch (ev.event) {
         case "token":
-          handlers.onToken(data.text);
+          handlers.onToken(eventPayload.text);
           break;
         case "thinking":
-          handlers.onThinking(data.text);
+          handlers.onThinking(eventPayload.text);
           break;
         case "tool":
-          handlers.onTool(data as ToolEvent);
+          handlers.onTool(eventPayload as ToolEvent);
           break;
         case "itinerary":
-          handlers.onItinerary(data as Itinerary);
+          handlers.onItinerary(eventPayload as Itinerary);
           break;
         case "done":
           handlers.onDone();
           break;
         case "error":
-          handlers.onError(data.message);
+          handlers.onError(eventPayload.message);
           break;
       }
     },

@@ -3,15 +3,6 @@ import type { Itinerary } from "../../types";
 import { isStopNode } from "../../types";
 import { proxiedImage } from "../../lib/img";
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
-      <span className="text-[12px] font-medium text-on-surface-variant/80">{label}</span>
-      <span className="text-[17px] font-semibold text-ink tabular-nums">{value}</span>
-    </div>
-  );
-}
-
 /** 行程概要头部：空气感卡片 + 关键指标排版。 */
 export function PlanSummary({
   itinerary,
@@ -29,7 +20,7 @@ export function PlanSummary({
   const showProgress = completedCount != null && totalStops != null;
 
   return (
-    <section className="mb-6 rounded-2xl border border-card-border bg-surface-container-lowest p-5 shadow-float">
+    <section className="airy-card mb-6 rounded-2xl p-5">
       {hasCover ? (
         <div className="relative mb-4 h-48 overflow-hidden rounded-xl">
           <img
@@ -51,9 +42,18 @@ export function PlanSummary({
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        <Stat label="游玩天数" value={`${itinerary.days} 天`} />
-        <Stat label="精选站点" value={`${stops} 处`} />
-        <Stat label="行程路段" value={`${legs} 段`} />
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
+          <span className="text-[12px] font-medium text-on-surface-variant/80">游玩天数</span>
+          <span className="text-[17px] font-semibold text-ink tabular-nums">{itinerary.days} 天</span>
+        </div>
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
+          <span className="text-[12px] font-medium text-on-surface-variant/80">精选站点</span>
+          <span className="text-[17px] font-semibold text-ink tabular-nums">{stops} 处</span>
+        </div>
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
+          <span className="text-[12px] font-medium text-on-surface-variant/80">行程路段</span>
+          <span className="text-[17px] font-semibold text-ink tabular-nums">{legs} 段</span>
+        </div>
       </div>
 
       {showProgress && (
