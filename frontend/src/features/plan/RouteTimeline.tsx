@@ -142,7 +142,7 @@ function StopCard({
           <SmartImage
             src={node.image}
             alt={node.name}
-            className="mb-3.5 h-36 w-full rounded-xl border border-card-border/60 object-cover shadow-soft"
+            className="mb-3.5 h-36 w-full rounded-xl border border-card-border object-cover shadow-soft"
           />
         )}
 
@@ -153,7 +153,7 @@ function StopCard({
         )}
 
         {/* 元数据行：距上站描述 / 区域描述 / 建议时长 / 方式 / 预约号 */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-card-border/60 pt-3 text-[12px] text-on-surface-variant">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-card-border pt-3 text-[12px] text-on-surface-variant">
           {distanceHint && (
             <span className="flex items-center gap-1">
               <Route size={14} className="text-primary shrink-0" />

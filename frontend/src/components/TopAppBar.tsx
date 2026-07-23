@@ -14,7 +14,7 @@ export function TopAppBar() {
 
   return (
     <>
-      <header className="flex items-center justify-between border-b border-card-border/60 bg-surface/90 backdrop-blur px-5 py-3.5 transition-colors">
+      <header className="flex items-center justify-between border-b border-card-border bg-surface/90 backdrop-blur px-5 py-3.5 transition-colors">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container/70 text-primary shadow-soft">
             <Compass size={18} />

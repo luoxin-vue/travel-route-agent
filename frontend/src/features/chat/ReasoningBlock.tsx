@@ -4,7 +4,7 @@ import { Sparkles, ChevronDown } from "lucide-react";
 export function ReasoningBlock({ text, active }: { text: string; active: boolean }) {
   if (!text) return null;
   return (
-    <details open={active} className="group mb-3 rounded-xl border border-card-border/80 bg-surface-container-low/60 transition-colors">
+    <details open={active} className="group mb-3 rounded-xl border border-card-border bg-surface-container-low/60 transition-colors">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-3.5 py-2.5 text-[13px] font-medium text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl">
         <Sparkles size={14} className="text-primary" />
         <span>管家深度分析{active ? "（分析中…）" : ""}</span>

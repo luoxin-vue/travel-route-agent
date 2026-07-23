@@ -36,7 +36,7 @@ export function ThinkingSteps({ steps }: { steps: ThinkingStep[] }) {
   const doneSteps = steps.filter((s) => s.status === "done");
 
   return (
-    <div className="mb-3 rounded-xl border border-card-border/70 bg-surface-container-low/50 p-3 overflow-hidden">
+    <div className="mb-3 rounded-xl border border-card-border bg-surface-container-low/50 p-3 overflow-hidden">
       <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-on-surface-variant">
         <Compass size={13} className="text-secondary" />
         <span>路线规划执行步骤</span>

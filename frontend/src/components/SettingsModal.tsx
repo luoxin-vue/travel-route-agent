@@ -61,7 +61,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm transition-opacity">
       <div className="relative flex h-[520px] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-card-border bg-surface shadow-2xl dark:shadow-float">
         {/* 顶部 Header */}
-        <div className="flex items-center justify-between border-b border-card-border/60 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-card-border px-6 py-4">
           <div className="flex items-center gap-2">
             <Compass size={20} className="text-primary" />
             <h3 className="text-headline-md font-semibold text-ink">随心管家 · 系统设置</h3>
@@ -85,7 +85,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         {/* 主体：小屏顶部 Horizontal Tabs，大屏左侧 Vertical Sidebar */}
         <div className="flex flex-1 flex-col sm:flex-row overflow-hidden">
           {/* 导航栏：小屏顶部横排，大屏左侧竖排 */}
-          <div className="flex shrink-0 border-b sm:border-b-0 sm:border-r border-card-border/60 bg-surface-container-low/60 p-2 sm:p-3 sm:w-44 sm:flex-col space-x-1 sm:space-x-0 sm:space-y-1 overflow-x-auto">
+          <div className="flex shrink-0 border-b sm:border-b-0 sm:border-r border-card-border bg-surface-container-low/60 p-2 sm:p-3 sm:w-44 sm:flex-col space-x-1 sm:space-x-0 sm:space-y-1 overflow-x-auto">
             <button
               onClick={() => setActiveTab("preferences")}
               className={`flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-all ${
@@ -163,7 +163,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   </div>
                 </div>
 
-                <div className="border-t border-card-border/60 pt-5">
+                <div className="border-t border-card-border pt-5">
                   <h4 className="text-[14px] font-semibold text-ink">行程节奏倾向</h4>
                   <p className="mt-0.5 text-[12px] text-on-surface-variant">
                     控制每日打卡节点的密度与游玩时长安排。
@@ -239,7 +239,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   </button>
                 </div>
 
-                <div className="border-t border-card-border/60 pt-5">
+                <div className="border-t border-card-border pt-5">
                   <h4 className="text-[14px] font-semibold text-ink">路线库导出与重置</h4>
                   <p className="mt-0.5 text-[12px] text-on-surface-variant">
                     将本地收藏与规划的路线导出为 JSON 数据备份，或清理本地路线数据。
@@ -302,9 +302,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   </div>
                 </div>
 
-                <div className="border-t border-card-border/60 pt-5">
+                <div className="border-t border-card-border pt-5">
                   <h4 className="text-[14px] font-semibold text-ink">系统说明与架构</h4>
-                  <div className="mt-3 rounded-xl border border-card-border/60 bg-surface-container-low/40 p-4 text-[12px] leading-relaxed text-on-surface-variant space-y-1">
+                  <div className="mt-3 rounded-xl border border-card-border bg-surface-container-low/40 p-4 text-[12px] leading-relaxed text-on-surface-variant space-y-1">
                     <p><strong className="text-ink">应用版本：</strong>v0.1.0 (Concierge Daemon)</p>
                     <p><strong className="text-ink">视觉风格：</strong>Warm Linen & Terracotta 棉麻暖感风格</p>
                     <p><strong className="text-ink">驱动技术：</strong>FastAPI + LangChain + React + Zustand + Amap</p>

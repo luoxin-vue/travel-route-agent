@@ -15,7 +15,7 @@ export function BottomNavBar() {
   const setTab = useAppStore((s) => s.setTab);
   return (
     <div className="bg-surface px-4 pb-3 pt-1">
-      <nav className="mx-auto flex max-w-lg items-center justify-around rounded-full border border-card-border/80 bg-surface-container-lowest/90 px-3 py-1.5 shadow-float backdrop-blur">
+      <nav className="mx-auto flex max-w-lg items-center justify-around rounded-full border border-card-border bg-surface-container-lowest/90 px-3 py-1.5 shadow-float backdrop-blur">
         {NAV_TABS.map(({ tab: t, label, icon: Icon }) => {
           const active = tab === t;
           return (

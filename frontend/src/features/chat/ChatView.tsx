@@ -166,7 +166,7 @@ export function ChatView() {
                 )}
                 {/* 生成后推荐操作入口 */}
                 {isLast && !streaming && itinerary && m.content && (
-                  <div className="mt-4 flex items-center gap-2 border-t border-card-border/80 pt-3.5">
+                  <div className="mt-4 flex items-center gap-2 border-t border-card-border pt-3.5">
                     <span className="text-[12px] font-medium text-on-surface-variant">生成结果：</span>
                     <button
                       onClick={() => setTab("plan")}
@@ -189,7 +189,7 @@ export function ChatView() {
       </div>
 
       {/* 浮动空气感搜索输入岛 */}
-      <div className="border-t border-card-border/60 bg-surface/80 px-4 pb-3 pt-2.5 backdrop-blur">
+      <div className="border-t border-card-border bg-surface/80 px-4 pb-3 pt-2.5 backdrop-blur">
         <div className="mx-auto max-w-3xl">
           {/* 搜索岛上方的灵感 Preset 快捷标签 */}
           <div className="no-scrollbar mb-2 flex items-center gap-2 overflow-x-auto">
@@ -201,7 +201,7 @@ export function ChatView() {
                   key={p.label}
                   onClick={() => send(p.prompt)}
                   disabled={streaming}
-                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-card-border/80 bg-surface-container-lowest px-3 py-1 text-[12px] font-medium text-ink shadow-soft transition-all hover:border-primary/50 hover:bg-primary-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-card-border bg-surface-container-lowest px-3 py-1 text-[12px] font-medium text-ink shadow-soft transition-all hover:border-primary/50 hover:bg-primary-container/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                 >
                   <Icon size={13} className="text-primary" />
                   {p.label}

@@ -30,7 +30,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
           alt={itinerary.title}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span className="absolute right-3 top-3 rounded-full border border-card-border/80 bg-surface-container-lowest/90 px-3 py-1 text-[11px] font-medium text-ink shadow-soft backdrop-blur tabular-nums">
+        <span className="absolute right-3 top-3 rounded-full border border-card-border bg-surface-container-lowest/90 px-3 py-1 text-[11px] font-medium text-ink shadow-soft backdrop-blur tabular-nums">
           {itinerary.days} 天 · {new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" }).format(route.savedAt)} 保存
         </span>
       </div>
@@ -81,7 +81,7 @@ export function RouteCard({ route }: { route: SavedRoute }) {
           <p className="mb-3 mt-2 line-clamp-2 text-[13px] leading-relaxed text-on-surface-variant">{summary}</p>
         )}
 
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-card-border/60 pt-3 text-[12px]">
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-card-border pt-3 text-[12px]">
           <span className="flex min-w-0 items-center gap-1 text-on-surface-variant">
             <MapPin size={14} className="shrink-0 text-primary/70" />
             <span className="truncate">{firstStop}</span>

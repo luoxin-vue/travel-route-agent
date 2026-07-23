@@ -42,10 +42,10 @@
   --color-surface-container-highest: #3A332C;
   --color-on-surface: #F5F3ED;
   --color-on-surface-variant: #A8A39A;
-  /* 深色模式下统一降低边框/outline 对比度 — 用更接近背景的暖灰褐 */
-  --color-outline: rgba(255, 255, 255, 0.06);   /* 虚线/时间轴点线 — 极淡微光 */
-  --color-outline-variant: rgba(255, 255, 255, 0.06); /* 滚动条/hover边框 — 极淡微光 */
-  --color-card-border: rgba(255, 255, 255, 0.06);     /* 卡片/按钮/输入框的边框 — 极淡微光 */
+  /* 深色模式边框/outline：深褐基底 (#3A332C) 暖色分级，替代冷白微光 */
+  --color-card-border: rgba(58, 51, 44, 0.30);     /* 卡片/按钮/输入框外框 — 可见但不抢 */
+  --color-outline: rgba(58, 51, 44, 0.22);         /* 分割线/虚线/时间轴点线 — 更淡 */
+  --color-outline-variant: rgba(58, 51, 44, 0.14); /* 次要边框/装饰 — 最淡（深色滚动条有独立硬编码） */
   --color-primary: #E08866;
   --color-primary-container: #4A1F12;
   --color-on-primary: #FFFFFF;
@@ -87,13 +87,13 @@ body {
   box-shadow: 0px 8px 24px -4px rgba(44, 48, 54, 0.08), 0px 4px 12px -2px rgba(44, 48, 54, 0.04);
 }
 
-/* 深色模式：卡片阴影改为微光描边而非暗色投影，消除「黑线框」感 */
+/* 深色模式：卡片阴影改为暖褐微光，与边框 token 同色温融入背景 */
 :root.dark .airy-card {
-  box-shadow: 0px 2px 8px -1px rgba(255, 255, 255, 0.03), 0px 1px 3px -1px rgba(255, 255, 255, 0.02);
+  box-shadow: 0px 2px 8px -1px rgba(58, 51, 44, 0.08), 0px 1px 3px -1px rgba(58, 51, 44, 0.05);
 }
 
 :root.dark .airy-card:hover {
-  box-shadow: 0px 4px 16px -3px rgba(255, 255, 255, 0.04), 0px 2px 6px -2px rgba(255, 255, 255, 0.025);
+  box-shadow: 0px 4px 16px -3px rgba(58, 51, 44, 0.10), 0px 2px 6px -2px rgba(58, 51, 44, 0.06);
 }
 
 /* 行程页：柔和连线 */
@@ -119,12 +119,12 @@ body {
   background: var(--color-outline);
 }
 
-/* 深色模式滚动条：比背景亮一档，保证可辨识但不突兀 */
+/* 深色模式滚动条：暖褐基底，比背景亮但不突兀 */
 :root.dark .airy-scroll::-webkit-scrollbar-thumb {
-  background: rgba(168, 163, 154, 0.25);
+  background: rgba(58, 51, 44, 0.30);
 }
 :root.dark .airy-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 163, 154, 0.4);
+  background: rgba(58, 51, 44, 0.45);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -132,7 +132,7 @@ body {
 }
 
 /* 深色模式 Tailwind shadow token 覆盖：
-   rgba(0,0,0,...) 在暗底上会变成刺眼的黑边，改为柔化发光效果。 */
-:root.dark .shadow-float { box-shadow: 0px 4px 12px -2px rgba(255, 255, 255, 0.06), 0px 2px 6px -1px rgba(255, 255, 255, 0.03); }
-:root.dark .shadow-soft { box-shadow: 0px 2px 8px -1px rgba(255, 255, 255, 0.05), 0px 1px 3px -1px rgba(255, 255, 255, 0.03); }
-:root.dark .shadow-card { box-shadow: 0px 4px 12px -2px rgba(255, 255, 255, 0.04), 0px 2px 4px -1px rgba(255, 255, 255, 0.02); }
+   暖褐投影替代白色发光，与边框 token 保持同色温。 */
+:root.dark .shadow-float { box-shadow: 0px 4px 12px -2px rgba(58, 51, 44, 0.18), 0px 2px 6px -1px rgba(58, 51, 44, 0.10); }
+:root.dark .shadow-soft { box-shadow: 0px 2px 8px -1px rgba(58, 51, 44, 0.12), 0px 1px 3px -1px rgba(58, 51, 44, 0.08); }
+:root.dark .shadow-card { box-shadow: 0px 4px 12px -2px rgba(58, 51, 44, 0.08), 0px 2px 4px -1px rgba(58, 51, 44, 0.05); }

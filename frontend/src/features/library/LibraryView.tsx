@@ -88,7 +88,7 @@ export function LibraryView() {
                 className={`shrink-0 rounded-full px-4 py-1.5 text-[13px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   filter === key
                     ? "bg-primary text-on-primary shadow-soft"
-                    : "border border-card-border/80 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:text-ink"
+                    : "border border-card-border bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low hover:text-ink"
                 }`}
               >
                 {label}

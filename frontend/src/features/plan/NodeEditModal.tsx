@@ -90,7 +90,7 @@ export function NodeEditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm transition-opacity">
       <div className="w-full max-w-lg rounded-2xl border border-card-border bg-surface p-6 shadow-xl">
         {/* 顶部标题与关闭按钮 */}
-        <div className="mb-5 flex items-center justify-between border-b border-card-border/60 pb-3">
+        <div className="mb-5 flex items-center justify-between border-b border-card-border pb-3">
           <h3 className="text-headline-md font-semibold text-ink">
             {isEditing ? "编辑行程节点" : "添加新游玩节点"}
           </h3>
@@ -299,7 +299,7 @@ export function NodeEditModal({
           </div>
 
           {/* 底部操作控制线 */}
-          <div className="mt-6 flex items-center justify-between border-t border-card-border/60 pt-4">
+          <div className="mt-6 flex items-center justify-between border-t border-card-border pt-4">
             {isEditing && onDelete ? (
               isConfirmingDelete ? (
                 <div className="flex items-center gap-2">
