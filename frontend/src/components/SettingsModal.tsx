@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { X, Sliders, HardDrive, Cpu, Check, Download, Trash2, ShieldCheck, Compass } from "lucide-react";
+import { X, Sliders, HardDrive, Cpu, Check, Download, Trash2, ShieldCheck, Compass, Sun, Moon, Monitor } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
+import type { ThemePreference } from "../types";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SettingsTab = "preferences" | "data" | "system";
+type SettingsTab = "preferences" | "appearance" | "data" | "system";
 
 /** 全局偏好与设置模态窗口（Warm Linen 暖白精致气泡风格）。 */
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
@@ -97,6 +98,17 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <span>旅行偏好</span>
             </button>
             <button
+              onClick={() => setActiveTab("appearance")}
+              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-all ${
+                activeTab === "appearance"
+                  ? "bg-primary-container/70 text-primary shadow-soft"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-ink"
+              }`}
+            >
+              <Sun size={16} className="shrink-0" />
+              <span>外观</span>
+            </button>
+            <button
               onClick={() => setActiveTab("data")}
               className={`flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-medium whitespace-nowrap transition-all ${
                 activeTab === "data"
@@ -173,6 +185,38 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       >
                         <span className="text-[13px] font-semibold whitespace-nowrap">{opt.label}</span>
                         <span className="mt-1 text-[11px] text-on-surface-variant/80">{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "appearance" && (
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-[14px] font-semibold text-ink">主题外观</h4>
+                  <p className="mt-0.5 text-[12px] text-on-surface-variant">
+                    选择浅色、深色或跟随系统；新用户默认跟随系统。
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2.5">
+                    {([
+                      { key: "light", label: "浅色", Icon: Sun },
+                      { key: "dark", label: "深色", Icon: Moon },
+                      { key: "system", label: "跟随系统", Icon: Monitor },
+                    ] as { key: ThemePreference; label: string; Icon: typeof Sun }[]).map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => updatePreferences({ theme: opt.key })}
+                        className={`flex flex-1 min-w-[100px] items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2.5 text-[13px] font-medium transition-all ${
+                          travelPreferences.theme === opt.key
+                            ? "border-primary bg-primary-container/40 text-primary shadow-soft"
+                            : "border-card-border bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
+                        }`}
+                      >
+                        <opt.Icon size={15} className="shrink-0" />
+                        <span>{opt.label}</span>
                       </button>
                     ))}
                   </div>

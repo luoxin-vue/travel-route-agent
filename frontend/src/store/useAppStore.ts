@@ -247,8 +247,20 @@ export const useAppStore = create<AppState>()(
     {
       // 持久化路线库与旅行偏好设置。
       name: "travel-route-library",
-      version: 1,
+      // v2 新增 travelPreferences.theme；旧 v1 状态由 migrate 补默认值 "system"。
+      version: 2,
       partialize: (state) => ({ savedRoutes: state.savedRoutes, travelPreferences: state.travelPreferences, activeRouteId: state.activeRouteId }),
+      migrate: (persistedState, fromVersion) => {
+        const state = (persistedState ?? {}) as Partial<AppState>;
+        const travelPreferences: TravelPreferences = {
+          ...DEFAULT_TRAVEL_PREFERENCES,
+          ...(state.travelPreferences ?? {}),
+        };
+        if (fromVersion < 2) {
+          travelPreferences.theme = "system";
+        }
+        return { ...state, travelPreferences } as AppState;
+      },
     },
   ),
 );

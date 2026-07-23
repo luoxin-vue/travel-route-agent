@@ -308,6 +308,33 @@ describe("saveRoute — 新计划生成时已完成节点不污染", () => {
   });
 });
 
+describe("theme preference", () => {
+  it("新用户默认主题为 'system'（跟随系统）", () => {
+    const theme = useAppStore.getState().travelPreferences.theme;
+    expect(theme).toBe("system");
+  });
+
+  it("updatePreferences({ theme: 'dark' }) 写入 store", () => {
+    useAppStore.getState().updatePreferences({ theme: "dark" });
+    expect(useAppStore.getState().travelPreferences.theme).toBe("dark");
+  });
+
+  it("updatePreferences({ theme: 'light' }) 不会清空其它偏好字段", () => {
+    useAppStore.getState().updatePreferences({ defaultProtocol: "DRIVING", pace: "compact" });
+    useAppStore.getState().updatePreferences({ theme: "light" });
+    const prefs = useAppStore.getState().travelPreferences;
+    expect(prefs.theme).toBe("light");
+    expect(prefs.defaultProtocol).toBe("DRIVING");
+    expect(prefs.pace).toBe("compact");
+  });
+
+  it("updatePreferences({ theme: 'system' }) 显式切回跟随系统", () => {
+    useAppStore.getState().updatePreferences({ theme: "dark" });
+    useAppStore.getState().updatePreferences({ theme: "system" });
+    expect(useAppStore.getState().travelPreferences.theme).toBe("system");
+  });
+});
+
 describe("deleteRoute — 删除活动路线时同步清除 activeRouteId", () => {
   it("删除当前活动路线后 activeRouteId 置为 null", () => {
     const itinerary = mockItinerary([stop({ name: "故宫", start_time: "09:00" })]);

@@ -67,14 +67,19 @@ export function isStopNode(node: ItineraryNode): boolean {
 }
 
 
+/** 用户可配置的主题外观偏好：浅色 / 深色 / 跟随系统。 */
+export type ThemePreference = "light" | "dark" | "system";
+
 /** 用户出行偏好配置。 */
 export interface TravelPreferences {
   defaultProtocol: string;
   pace: "relaxed" | "compact";
+  theme: ThemePreference;
 }
 
 export const DEFAULT_TRAVEL_PREFERENCES: TravelPreferences = {
   defaultProtocol: "TRANSIT",
   pace: "relaxed",
+  theme: "system",
 };
 

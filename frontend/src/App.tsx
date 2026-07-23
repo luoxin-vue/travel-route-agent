@@ -1,4 +1,5 @@
 import { useAppStore } from "./store/useAppStore";
+import { useThemeEffect } from "./lib/use-theme";
 import { TopAppBar } from "./components/TopAppBar";
 import { BottomNavBar } from "./components/BottomNavBar";
 import { ChatView } from "./features/chat/ChatView";
@@ -8,6 +9,7 @@ import { LibraryView } from "./features/library/LibraryView";
 
 export default function App() {
   const tab = useAppStore((s) => s.tab);
+  useThemeEffect();
 
   return (
     <div className="mx-auto flex h-full max-w-2xl flex-col bg-surface">

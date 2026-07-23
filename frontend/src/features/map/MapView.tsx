@@ -1,13 +1,20 @@
 import { useEffect, useRef } from "react";
 import AMapLoader from "@amap/amap-jsapi-loader";
 import { useAppStore } from "../../store/useAppStore";
+import { useResolvedTheme } from "../../lib/use-theme";
 import { EmptyState } from "../../components/EmptyState";
 
 const JS_KEY = import.meta.env.VITE_AMAP_JS_KEY;
 const SECURITY_CODE = import.meta.env.VITE_AMAP_JS_SECURITY_CODE;
 
+const AMAP_STYLE_ID = {
+  light: "amap://styles/whitesmoke",
+  dark: "amap://styles/dark",
+} as const;
+
 export function MapView() {
   const itinerary = useAppStore((s) => s.itinerary);
+  const resolvedTheme = useResolvedTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
 
@@ -28,7 +35,7 @@ export function MapView() {
       const map = new AMap.Map(containerRef.current, {
         zoom: 12,
         center: points[0].pos,
-        mapStyle: "amap://styles/whitesmoke",
+        mapStyle: AMAP_STYLE_ID[resolvedTheme],
       });
       mapRef.current = map;
 
@@ -52,7 +59,13 @@ export function MapView() {
       mapRef.current?.destroy?.();
       mapRef.current = null;
     };
-  }, [itinerary]);
+  }, [itinerary, resolvedTheme]);
+
+  // 主题单独变化时只切底图样式，不重建地图（保留 pan/zoom）。
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.setMapStyle?.(AMAP_STYLE_ID[resolvedTheme]);
+  }, [resolvedTheme]);
 
   if (!itinerary) {
     return <EmptyState title="尚无地图数据" hint="生成行程后，途经点与路线将在此显示。" />;

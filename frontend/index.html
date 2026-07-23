@@ -5,6 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
     <meta name="theme-color" content="#C86D51" />
+    <!--
+      防浅色闪屏：在 React 挂载前读 localStorage 里的主题偏好，把 .dark 类挂到 <html>。
+      与 src/lib/use-theme.ts 的 resolveTheme 逻辑保持一致；解析失败一律按"跟随系统"兜底。
+    -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem("travel-route-library");
+          if (!raw) return;
+          var data = JSON.parse(raw);
+          var pref = data && data.state && data.state.travelPreferences && data.state.travelPreferences.theme;
+          var systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var useDark;
+          if (pref === "dark") useDark = true;
+          else if (pref === "light") useDark = false;
+          else useDark = !!systemDark;
+          if (useDark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
     <!-- iOS 添加到主屏（套壳 / 独立全屏）-->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />

@@ -2,8 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * 主题 token：浅色（暖白棉麻）与深色（暖感深褐炭咖）两套。
+ * 切换方式：在 <html> 上加/去 .dark 类；CSS 变量随之解析到不同作用域下的值。
+ * 设计语言：Warm Linen & Terracotta —— 暖感生活空气感；深色模式不切到冷灰黑。
+ */
 :root {
+  --color-surface: #FAF9F6;
+  --color-surface-dim: #F3F0EA;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #F5F3ED;
+  --color-surface-container: #EAE7E1;
+  --color-surface-container-high: #E2DDD4;
+  --color-surface-container-highest: #D8D1C5;
+  --color-on-surface: #2C3036;
+  --color-on-surface-variant: #646E7B;
+  --color-outline: #D6CFB9;
+  --color-outline-variant: #EAE7E1;
+  --color-primary: #C86D51;
+  --color-primary-container: #FCEBE6;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #5A9E97;
+  --color-secondary-container: #E6F3F1;
+  --color-error: #DC2626;
+  --color-ink: #2C3036;
+  --color-card-border: #EAE7E1;
+  --color-teal: #5A9E97;
+
   color-scheme: light;
+}
+
+:root.dark {
+  --color-surface: #1A1714;
+  --color-surface-dim: #14110E;
+  --color-surface-container-lowest: #221E1A;
+  --color-surface-container-low: #1F1B17;
+  --color-surface-container: #2A2520;
+  --color-surface-container-high: #322C26;
+  --color-surface-container-highest: #3A332C;
+  --color-on-surface: #F5F3ED;
+  --color-on-surface-variant: #A8A39A;
+  --color-outline: #4A4338;
+  --color-outline-variant: #322C26;
+  --color-primary: #E08866;
+  --color-primary-container: #4A1F12;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #7AB8B0;
+  --color-secondary-container: #1F3633;
+  --color-error: #F87171;
+  --color-ink: #F5F3ED;
+  --color-card-border: #2A2520;
+  --color-teal: #7AB8B0;
+
+  color-scheme: dark;
 }
 
 html,
@@ -16,16 +67,16 @@ body,
 
 body {
   margin: 0;
-  background: theme("colors.surface");
-  color: theme("colors.ink");
+  background: var(--color-surface);
+  color: var(--color-ink);
   font-family: theme("fontFamily.sans");
   -webkit-font-smoothing: antialiased;
 }
 
 /* 空气感浮影卡片 */
 .airy-card {
-  background-color: #ffffff;
-  border: 1px solid #eae7e1;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-card-border);
   box-shadow: 0px 4px 16px -2px rgba(44, 48, 54, 0.05), 0px 2px 6px -1px rgba(44, 48, 54, 0.03);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -37,7 +88,7 @@ body {
 
 /* 行程页：柔和连线 */
 .timeline-dotted {
-  background-image: radial-gradient(#d6cfb9 1.5px, transparent 1.5px);
+  background-image: radial-gradient(var(--color-outline) 1.5px, transparent 1.5px);
   background-size: 1px 14px;
   background-repeat: repeat-y;
   background-position: center;
@@ -51,14 +102,13 @@ body {
   background: transparent;
 }
 .airy-scroll::-webkit-scrollbar-thumb {
-  background: #eae7e1;
+  background: var(--color-outline-variant);
   border-radius: 9999px;
 }
 .airy-scroll::-webkit-scrollbar-thumb:hover {
-  background: #d8d1c5;
+  background: var(--color-outline);
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
