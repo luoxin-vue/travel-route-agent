@@ -2,7 +2,7 @@
 
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { DEFAULT_TRAVEL_PREFERENCES, type Itinerary } from "../../types";
 import { useAppStore } from "../../store/useAppStore";
 import { MapView } from "./MapView";
@@ -30,9 +30,13 @@ const ITINERARY: Itinerary = {
 };
 
 type MapDouble = {
-  destroy: ReturnType<typeof vi.fn>;
-  setFitView: ReturnType<typeof vi.fn>;
-  setMapStyle: ReturnType<typeof vi.fn>;
+  destroy: Mock<() => void>;
+  getCenter: Mock<() => [number, number]>;
+  getZoom: Mock<() => number>;
+  setCenter: Mock<(center: [number, number]) => void>;
+  setFitView: Mock<() => void>;
+  setMapStyle: Mock<(style: string) => void>;
+  setZoom: Mock<(zoom: number) => void>;
 };
 
 let root: Root;
@@ -42,11 +46,24 @@ let maps: MapDouble[];
 beforeEach(() => {
   vi.clearAllMocks();
   maps = [];
-  createMap.mockImplementation(function createMapDouble(mapContainer: HTMLElement) {
+  createMap.mockImplementation(function createMapDouble(
+    mapContainer: HTMLElement,
+    options: { center: [number, number]; zoom: number },
+  ) {
+    let center = options.center;
+    let zoom = options.zoom;
     const map: MapDouble = {
       destroy: vi.fn(),
+      getCenter: vi.fn(() => center),
+      getZoom: vi.fn(() => zoom),
+      setCenter: vi.fn((nextCenter: [number, number]) => {
+        center = nextCenter;
+      }),
       setFitView: vi.fn(),
       setMapStyle: vi.fn(),
+      setZoom: vi.fn((nextZoom: number) => {
+        zoom = nextZoom;
+      }),
     };
     const mapLayer = document.createElement("div");
     mapLayer.className = "amap-mapdiv";
@@ -75,8 +92,8 @@ afterEach(async () => {
   container.remove();
 });
 
-describe("深色底图", () => {
-  it("首次以深色模式打开时不覆盖高德原生底图渲染", async () => {
+describe("默认底图", () => {
+  it("深色界面下仍使用高德默认底图", async () => {
     useAppStore.getState().updatePreferences({ theme: "dark" });
 
     await act(async () => {
@@ -86,62 +103,33 @@ describe("深色底图", () => {
 
     expect(createMap).toHaveBeenCalledWith(
       expect.any(HTMLDivElement),
-      expect.objectContaining({ mapStyle: "amap://styles/dark" }),
+      expect.objectContaining({ mapStyle: "amap://styles/normal" }),
     );
     const mapLayer = container.querySelector(".amap-mapdiv");
     expect(mapLayer).not.toBeNull();
     expect(window.getComputedStyle(mapLayer!).filter).not.toContain("brightness");
   });
 
-  it("首次深色底图初始化异常时回退到高德默认底图", async () => {
-    useAppStore.getState().updatePreferences({ theme: "dark" });
-    const createMapDouble = createMap.getMockImplementation()!;
-    createMap
-      .mockImplementationOnce(function rejectDarkStyle() {
-        throw new Error("样式不可用");
-      })
-      .mockImplementationOnce(createMapDouble);
-
+  it("切换界面主题时保持地图实例、视口和覆盖物", async () => {
     await act(async () => {
       root.render(<MapView />);
       await Promise.resolve();
     });
 
-    expect(createMap).toHaveBeenNthCalledWith(
-      1,
-      expect.any(HTMLDivElement),
-      expect.objectContaining({ mapStyle: "amap://styles/dark" }),
-    );
-    expect(createMap).toHaveBeenNthCalledWith(
-      2,
+    expect(createMap).toHaveBeenCalledWith(
       expect.any(HTMLDivElement),
       expect.objectContaining({ mapStyle: "amap://styles/normal" }),
     );
-    expect(maps).toHaveLength(1);
-  });
-
-  it("切换主题时复用地图实例并原地更新底图样式", async () => {
-    await act(async () => {
-      root.render(<MapView />);
-      await Promise.resolve();
-    });
-
-    expect(loadMapSdk).toHaveBeenCalledTimes(1);
-    expect(createMap).toHaveBeenCalledWith(
-      expect.any(HTMLDivElement),
-      expect.objectContaining({ mapStyle: "amap://styles/whitesmoke" }),
-    );
     const initialMap = maps[0];
+    initialMap.setCenter([121.4737, 31.2304]);
+    initialMap.setZoom(15);
+    const centerBeforeThemeChange = initialMap.getCenter();
+    const zoomBeforeThemeChange = initialMap.getZoom();
 
     await act(async () => {
       useAppStore.getState().updatePreferences({ theme: "dark" });
       await Promise.resolve();
     });
-
-    expect(loadMapSdk).toHaveBeenCalledTimes(1);
-    expect(initialMap.destroy).not.toHaveBeenCalled();
-    expect(initialMap.setMapStyle).toHaveBeenLastCalledWith("amap://styles/dark");
-
     await act(async () => {
       useAppStore.getState().updatePreferences({ theme: "light" });
       await Promise.resolve();
@@ -149,62 +137,10 @@ describe("深色底图", () => {
 
     expect(loadMapSdk).toHaveBeenCalledTimes(1);
     expect(initialMap.destroy).not.toHaveBeenCalled();
-    expect(initialMap.setMapStyle).toHaveBeenLastCalledWith("amap://styles/whitesmoke");
+    expect(initialMap.setMapStyle).not.toHaveBeenCalled();
+    expect(initialMap.getCenter()).toEqual(centerBeforeThemeChange);
+    expect(initialMap.getZoom()).toBe(zoomBeforeThemeChange);
     expect(createMarker).toHaveBeenCalledTimes(2);
     expect(createPolyline).toHaveBeenCalledTimes(1);
-  });
-
-  it("地图加载期间切换主题时使用最新底图样式", async () => {
-    const mapSdk = {
-      Map: createMap,
-      Marker: createMarker,
-      Polyline: createPolyline,
-    };
-    let resolveMapSdk!: (sdk: typeof mapSdk) => void;
-    loadMapSdk.mockReturnValue(new Promise((resolve) => {
-      resolveMapSdk = resolve;
-    }));
-
-    await act(async () => {
-      root.render(<MapView />);
-      await Promise.resolve();
-    });
-    await act(async () => {
-      useAppStore.getState().updatePreferences({ theme: "dark" });
-      await Promise.resolve();
-    });
-
-    expect(createMap).not.toHaveBeenCalled();
-
-    await act(async () => {
-      resolveMapSdk(mapSdk);
-      await Promise.resolve();
-    });
-
-    expect(createMap).toHaveBeenCalledWith(
-      expect.any(HTMLDivElement),
-      expect.objectContaining({ mapStyle: "amap://styles/dark" }),
-    );
-  });
-
-  it("深色样式设置异常时回退到高德默认底图", async () => {
-    await act(async () => {
-      root.render(<MapView />);
-      await Promise.resolve();
-    });
-
-    const initialMap = maps[0];
-    initialMap.setMapStyle.mockImplementation((style: string) => {
-      if (style === "amap://styles/dark") throw new Error("样式不可用");
-    });
-
-    await act(async () => {
-      useAppStore.getState().updatePreferences({ theme: "dark" });
-      await Promise.resolve();
-    });
-
-    expect(initialMap.setMapStyle).toHaveBeenNthCalledWith(1, "amap://styles/dark");
-    expect(initialMap.setMapStyle).toHaveBeenNthCalledWith(2, "amap://styles/normal");
-    expect(initialMap.destroy).not.toHaveBeenCalled();
   });
 });

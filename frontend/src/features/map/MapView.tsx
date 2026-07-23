@@ -1,25 +1,17 @@
 import { useEffect, useRef } from "react";
 import AMapLoader from "@amap/amap-jsapi-loader";
 import { useAppStore } from "../../store/useAppStore";
-import { useResolvedTheme } from "../../lib/use-theme";
 import { EmptyState } from "../../components/EmptyState";
 
 const JS_KEY = import.meta.env.VITE_AMAP_JS_KEY;
 const SECURITY_CODE = import.meta.env.VITE_AMAP_JS_SECURITY_CODE;
 
-const AMAP_STYLE_ID = {
-  light: "amap://styles/whitesmoke",
-  dark: "amap://styles/dark",
-} as const;
 const AMAP_DEFAULT_STYLE_ID = "amap://styles/normal";
 
 export function MapView() {
   const itinerary = useAppStore((s) => s.itinerary);
-  const resolvedTheme = useResolvedTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const resolvedThemeRef = useRef(resolvedTheme);
-  resolvedThemeRef.current = resolvedTheme;
 
   useEffect(() => {
     if (!itinerary) return;
@@ -38,19 +30,9 @@ export function MapView() {
       const mapOptions = {
         zoom: 12,
         center: points[0].pos,
-        mapStyle: AMAP_STYLE_ID[resolvedThemeRef.current],
+        mapStyle: AMAP_DEFAULT_STYLE_ID,
       };
-      let map;
-      try {
-        map = new AMap.Map(containerRef.current, mapOptions);
-      } catch {
-        if (resolvedThemeRef.current !== "dark") return;
-        try {
-          map = new AMap.Map(containerRef.current, { ...mapOptions, mapStyle: AMAP_DEFAULT_STYLE_ID });
-        } catch {
-          return;
-        }
-      }
+      const map = new AMap.Map(containerRef.current, mapOptions);
       mapRef.current = map;
 
       points.forEach((p, i) => {
@@ -74,20 +56,6 @@ export function MapView() {
       mapRef.current = null;
     };
   }, [itinerary]);
-
-  // 主题单独变化时只切底图样式，不重建地图（保留中心位置和缩放级别）。
-  useEffect(() => {
-    if (!mapRef.current) return;
-    try {
-      mapRef.current.setMapStyle?.(AMAP_STYLE_ID[resolvedTheme]);
-    } catch {
-      if (resolvedTheme === "dark") {
-        try {
-          mapRef.current.setMapStyle?.(AMAP_DEFAULT_STYLE_ID);
-        } catch {}
-      }
-    }
-  }, [resolvedTheme]);
 
   if (!itinerary) {
     return <EmptyState title="尚无地图数据" hint="生成行程后，途经点与路线将在此显示。" />;
