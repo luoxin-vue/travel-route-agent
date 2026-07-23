@@ -142,7 +142,7 @@ export function NodeEditModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="例如：故宫博物院 / 宝格丽酒店"
-                className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[14px] text-ink focus:border-primary focus:outline-none"
+                className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[14px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export function NodeEditModal({
                   value={locationSummary}
                   onChange={(e) => setLocationSummary(e.target.value)}
                   placeholder="例如：北京 · 东城区"
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -175,7 +175,7 @@ export function NodeEditModal({
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
                   placeholder="例如：建议游玩 2.5 小时"
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@ export function NodeEditModal({
                   min={1}
                   value={day}
                   onChange={(e) => setDay(Number(e.target.value))}
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -210,7 +210,7 @@ export function NodeEditModal({
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   placeholder="09:00"
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -225,7 +225,7 @@ export function NodeEditModal({
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                   placeholder="11:30"
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-1.5 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ export function NodeEditModal({
                 <select
                   value={protocol}
                   onChange={(e) => setProtocol(e.target.value)}
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 >
                   {PROTOCOL_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -261,7 +261,7 @@ export function NodeEditModal({
                   value={nextDistanceKm}
                   onChange={(e) => setNextDistanceKm(e.target.value)}
                   placeholder="如：3.2"
-                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-2 text-[13px] text-ink focus:border-primary focus:outline-none"
+                  className="w-full rounded-xl border border-card-border bg-surface-container-low pl-8 pr-2 py-2 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
                 />
               </div>
             </div>
@@ -278,7 +278,7 @@ export function NodeEditModal({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="填写注意事项或推荐门票/餐饮..."
-                className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[14px] text-ink focus:border-primary focus:outline-none"
+                className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[14px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
               />
             </div>
           </div>
@@ -293,7 +293,7 @@ export function NodeEditModal({
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
                 placeholder="https://..."
-                className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[13px] text-ink focus:border-primary focus:outline-none"
+                className="w-full rounded-xl border border-card-border bg-surface-container-low pl-9 pr-3 py-2 text-[13px] text-ink placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
               />
             </div>
           </div>

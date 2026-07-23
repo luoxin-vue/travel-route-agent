@@ -219,7 +219,7 @@ export function ChatView() {
               disabled={streaming}
               placeholder="输入目的地或出行偏好..."
               aria-label="输入旅行意图或下一站"
-              className="flex-1 border-none bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-on-surface-variant/50"
+              className="flex-1 border-none bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-on-surface-variant"
             />
             <button
               onClick={() => send()}
