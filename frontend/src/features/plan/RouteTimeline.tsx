@@ -89,7 +89,7 @@ function StopCard({
             ? "bg-secondary text-on-surface-variant ring-4 ring-surface"
             : overnight
             ? "bg-primary text-on-surface-variant ring-4 ring-surface"
-            : "border-2 border-primary/70 bg-surface ring-4 ring-surface"
+            : "border-2 border-on-surface-variant bg-surface ring-4 ring-surface"
         }`}
       >
         {completed && <Check size={10} className="stroke-[3]" />}
@@ -188,7 +188,7 @@ function StopCard({
 
         {/* 底部游玩建议与小贴士卡片 */}
         {node.notes && (
-          <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-primary/30 bg-primary-container/30 p-3 text-[13px] leading-relaxed text-ink">
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-on-surface-variant bg-primary-container/30 p-3 text-[13px] leading-relaxed text-ink">
             <Sparkles size={16} className="mt-0.5 shrink-0 text-primary" />
             <div>
               <span className="font-semibold text-primary">游玩建议与小贴士：</span>
