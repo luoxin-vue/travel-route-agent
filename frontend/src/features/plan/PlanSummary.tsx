@@ -32,7 +32,7 @@ export function PlanSummary({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/20 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-4">
-            <h1 className="text-2xl font-semibold leading-tight text-white drop-shadow-sm">
+            <h1 className="text-2xl font-semibold leading-tight text-on-surface drop-shadow-sm">
               {itinerary.title}
             </h1>
           </div>
