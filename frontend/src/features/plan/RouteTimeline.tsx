@@ -86,7 +86,7 @@ function StopCard({
       <span
         className={`absolute left-2 top-3.5 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full transition-all ${
           completed
-            ? "bg-secondary text-on-surface-variant ring-4 ring-surface"
+            ? "bg-secondary text-[#F5F3ED] ring-4 ring-surface"
             : overnight
             ? "bg-primary text-on-surface-variant ring-4 ring-surface"
             : "border-2 border-on-surface-variant bg-surface ring-4 ring-surface"
