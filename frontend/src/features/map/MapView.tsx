@@ -11,47 +11,15 @@ const AMAP_STYLE_ID = {
   light: "amap://styles/whitesmoke",
   dark: "amap://styles/dark",
 } as const;
-
-/** 高德地图深色底图上，默认白色 POI 地名标签不可见。
- * 通过 CSS filter + 覆盖注入样式表解决：
- * 1) 对 mapDiv 施加 filter: brightness(1.3) 使深色瓦片更亮、标签对比度更高
- * 2) 用独立 <style> 强制覆盖 .amap-pois 和 .amap-text 的文字颜色 */
-const DARK_MAP_FIX_STYLES = `
-  /* 深色地图瓦片提亮：让暗底不吞文字 */
-  .amap-mapdiv { filter: brightness(1.3) contrast(0.95); }
-
-  /* POI 地名标签：深陶棕，跨浅深两态都够对比 */
-  .amap-text,.amap-pois .text,.amap-pois .text-inner {
-    color: #E8D5C4 !important;
-    -webkit-text-stroke: 0.3px #1A1714 !important;
-    stroke: #1A1714 !important;
-  }
-  .amap-pois .text-content {
-    color: #E8D5C4 !important;
-    stroke: #1A1714 !important;
-  }
-`;
+const AMAP_DEFAULT_STYLE_ID = "amap://styles/normal";
 
 export function MapView() {
   const itinerary = useAppStore((s) => s.itinerary);
   const resolvedTheme = useResolvedTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-
-  // 深色地图：注入 POI label 颜色覆盖 + 瓦片提亮，解决地名不可见和暗底吞文字
-  useEffect(() => {
-    if (resolvedTheme !== "dark") return;
-    let styleEl: HTMLStyleElement | null = null;
-    try {
-      styleEl = document.createElement("style");
-      styleEl.setAttribute("data-theme-map-fix", "true");
-      styleEl.textContent = DARK_MAP_FIX_STYLES;
-      document.head.appendChild(styleEl);
-    } catch {}
-    return () => {
-      if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
-    };
-  }, [resolvedTheme]);
+  const resolvedThemeRef = useRef(resolvedTheme);
+  resolvedThemeRef.current = resolvedTheme;
 
   useEffect(() => {
     if (!itinerary) return;
@@ -67,11 +35,22 @@ export function MapView() {
     let destroyed = false;
     AMapLoader.load({ key: JS_KEY, version: "2.0", plugins: ["AMap.Polyline"] }).then((AMap) => {
       if (destroyed || !containerRef.current) return;
-      const map = new AMap.Map(containerRef.current, {
+      const mapOptions = {
         zoom: 12,
         center: points[0].pos,
-        mapStyle: AMAP_STYLE_ID[resolvedTheme],
-      });
+        mapStyle: AMAP_STYLE_ID[resolvedThemeRef.current],
+      };
+      let map;
+      try {
+        map = new AMap.Map(containerRef.current, mapOptions);
+      } catch {
+        if (resolvedThemeRef.current !== "dark") return;
+        try {
+          map = new AMap.Map(containerRef.current, { ...mapOptions, mapStyle: AMAP_DEFAULT_STYLE_ID });
+        } catch {
+          return;
+        }
+      }
       mapRef.current = map;
 
       points.forEach((p, i) => {
@@ -94,12 +73,20 @@ export function MapView() {
       mapRef.current?.destroy?.();
       mapRef.current = null;
     };
-  }, [itinerary, resolvedTheme]);
+  }, [itinerary]);
 
-  // 主题单独变化时只切底图样式，不重建地图（保留 pan/zoom）。
+  // 主题单独变化时只切底图样式，不重建地图（保留中心位置和缩放级别）。
   useEffect(() => {
     if (!mapRef.current) return;
-    mapRef.current.setMapStyle?.(AMAP_STYLE_ID[resolvedTheme]);
+    try {
+      mapRef.current.setMapStyle?.(AMAP_STYLE_ID[resolvedTheme]);
+    } catch {
+      if (resolvedTheme === "dark") {
+        try {
+          mapRef.current.setMapStyle?.(AMAP_DEFAULT_STYLE_ID);
+        } catch {}
+      }
+    }
   }, [resolvedTheme]);
 
   if (!itinerary) {
