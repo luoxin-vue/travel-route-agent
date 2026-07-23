@@ -307,7 +307,7 @@ export function NodeEditModal({
                   <button
                     type="button"
                     onClick={handleDelete}
-                    className="rounded-lg bg-error px-2.5 py-1 text-[12px] font-medium text-white hover:bg-error/90 transition-colors"
+                    className="rounded-lg bg-error px-2.5 py-1 text-[12px] font-medium text-on-surface hover:bg-error/90 transition-colors"
                   >
                     确认
                   </button>
@@ -344,7 +344,7 @@ export function NodeEditModal({
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-primary px-5 py-2 text-[13px] font-medium text-white shadow-soft hover:bg-primary/90 transition-colors"
+                className="rounded-xl bg-primary px-5 py-2 text-[13px] font-medium text-on-primary shadow-soft hover:bg-primary/90 transition-colors"
               >
                 保存
               </button>

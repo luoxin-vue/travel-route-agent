@@ -76,7 +76,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
         {/* 提示消息 Toast */}
         {toastMsg && (
-          <div className="absolute top-16 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-[12px] font-medium text-white shadow-soft animate-fade-in">
+          <div className="absolute top-16 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-ink px-4 py-1.5 text-[12px] font-medium text-surface shadow-soft animate-fade-in">
             <Check size={14} className="text-secondary" />
             <span>{toastMsg}</span>
           </div>
@@ -258,7 +258,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <span className="text-[12px] font-medium text-error whitespace-nowrap">确定重置所有路线？</span>
                         <button
                           onClick={handleResetRoutes}
-                          className="whitespace-nowrap rounded-lg bg-error px-3 py-1.5 text-[12px] font-medium text-white hover:bg-error/90"
+                          className="whitespace-nowrap rounded-lg bg-error px-3 py-1.5 text-[12px] font-medium text-on-surface hover:bg-error/90"
                         >
                           确定
                         </button>
