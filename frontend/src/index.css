@@ -42,8 +42,8 @@
   --color-surface-container-highest: #3A332C;
   --color-on-surface: #F5F3ED;
   --color-on-surface-variant: #A8A39A;
-  --color-outline: #4A4338;
-  --color-outline-variant: #322C26;
+  --color-outline: #3D362B;
+  --color-outline-variant: #2A2520;
   --color-primary: #E08866;
   --color-primary-container: #4A1F12;
   --color-on-primary: #FFFFFF;
@@ -86,6 +86,15 @@ body {
   box-shadow: 0px 8px 24px -4px rgba(44, 48, 54, 0.08), 0px 4px 12px -2px rgba(44, 48, 54, 0.04);
 }
 
+/* 深色模式：卡片阴影改为向外发光而非暗边，避免「黑线框」效果 */
+:root.dark .airy-card {
+  box-shadow: 0px 2px 8px -1px rgba(0, 0, 0, 0.3), 0px 1px 3px -1px rgba(0, 0, 0, 0.2);
+}
+
+:root.dark .airy-card:hover {
+  box-shadow: 0px 4px 16px -3px rgba(0, 0, 0, 0.4), 0px 2px 6px -2px rgba(0, 0, 0, 0.25);
+}
+
 /* 行程页：柔和连线 */
 .timeline-dotted {
   background-image: radial-gradient(var(--color-outline) 1.5px, transparent 1.5px);
@@ -109,6 +118,20 @@ body {
   background: var(--color-outline);
 }
 
+/* 深色模式滚动条：比背景亮一档，保证可辨识但不突兀 */
+:root.dark .airy-scroll::-webkit-scrollbar-thumb {
+  background: rgba(168, 163, 154, 0.25);
+}
+:root.dark .airy-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 163, 154, 0.4);
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* 深色模式 Tailwind shadow token 覆盖：
+   rgba(0,0,0,...) 在暗底上会变成刺眼的黑边，改为柔化发光效果。 */
+:root.dark .shadow-float { box-shadow: 0px 4px 12px -2px rgba(255, 255, 255, 0.06), 0px 2px 6px -1px rgba(255, 255, 255, 0.03); }
+:root.dark .shadow-soft { box-shadow: 0px 2px 8px -1px rgba(255, 255, 255, 0.05), 0px 1px 3px -1px rgba(255, 255, 255, 0.03); }
+:root.dark .shadow-card { box-shadow: 0px 4px 12px -2px rgba(255, 255, 255, 0.04), 0px 2px 4px -1px rgba(255, 255, 255, 0.02); }

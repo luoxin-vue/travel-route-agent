@@ -58,8 +58,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm transition-opacity">
-      <div className="relative flex h-[520px] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-card-border bg-surface shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm transition-opacity dark:bg-white/10">
+      <div className="relative flex h-[520px] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-card-border bg-surface shadow-2xl dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
         {/* 顶部 Header */}
         <div className="flex items-center justify-between border-b border-card-border/60 px-6 py-4">
           <div className="flex items-center gap-2">
