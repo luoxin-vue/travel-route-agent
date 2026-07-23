@@ -86,9 +86,9 @@ function StopCard({
       <span
         className={`absolute left-2 top-3.5 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full transition-all ${
           completed
-            ? "bg-secondary text-white ring-4 ring-surface"
+            ? "bg-secondary text-on-surface-variant ring-4 ring-surface"
             : overnight
-            ? "bg-primary text-white ring-4 ring-surface"
+            ? "bg-primary text-on-surface-variant ring-4 ring-surface"
             : "border-2 border-primary/70 bg-surface ring-4 ring-surface"
         }`}
       >
@@ -188,7 +188,7 @@ function StopCard({
 
         {/* 底部游玩建议与小贴士卡片 */}
         {node.notes && (
-          <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary-container/30 p-3 text-[13px] leading-relaxed text-ink">
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-primary/30 bg-primary-container/30 p-3 text-[13px] leading-relaxed text-ink">
             <Sparkles size={16} className="mt-0.5 shrink-0 text-primary" />
             <div>
               <span className="font-semibold text-primary">游玩建议与小贴士：</span>

@@ -42,15 +42,15 @@ export function PlanSummary({
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container py-2.5 px-3">
           <span className="text-[12px] font-medium text-on-surface-variant/80">游玩天数</span>
           <span className="text-[17px] font-semibold text-ink tabular-nums">{itinerary.days} 天</span>
         </div>
-        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container py-2.5 px-3">
           <span className="text-[12px] font-medium text-on-surface-variant/80">精选站点</span>
           <span className="text-[17px] font-semibold text-ink tabular-nums">{stops} 处</span>
         </div>
-        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container-low/60 py-2.5 px-3">
+        <div className="flex flex-col items-center justify-center rounded-xl bg-surface-container py-2.5 px-3">
           <span className="text-[12px] font-medium text-on-surface-variant/80">行程路段</span>
           <span className="text-[17px] font-semibold text-ink tabular-nums">{legs} 段</span>
         </div>
