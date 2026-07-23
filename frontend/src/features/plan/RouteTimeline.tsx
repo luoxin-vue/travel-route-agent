@@ -1,12 +1,6 @@
 import {
   MapPin,
   Plus,
-  Footprints,
-  Car,
-  TrainFront,
-  Bus,
-  Plane,
-  Bike,
   BedDouble,
   Navigation,
   CalendarRange,
@@ -15,7 +9,6 @@ import {
   Sparkles,
   Route,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { Itinerary, ItineraryNode } from "../../types";
 import { nodeKey } from "../../types";
 import { SmartImage } from "../../components/SmartImage";
@@ -23,48 +16,8 @@ import { computeDistanceHint } from "../../lib/distance-hint";
 
 import { protocolLabel } from "../../lib/labels";
 
-function protocolIcon(protocol?: string | null): LucideIcon {
-  switch ((protocol ?? "").toUpperCase()) {
-    case "WALKING":
-      return Footprints;
-    case "DRIVING":
-    case "TAXI":
-      return Car;
-    case "METRO":
-    case "SUBWAY":
-    case "TRAIN":
-    case "HIGH_SPEED_RAIL":
-      return TrainFront;
-    case "BUS":
-    case "TRANSIT":
-      return Bus;
-    case "FLIGHT":
-      return Plane;
-    case "BICYCLING":
-      return Bike;
-    default:
-      return Navigation;
-  }
-}
 
-function TransportLink({ node }: { node: ItineraryNode }) {
-  const Icon = protocolIcon(node.protocol);
-  const label = protocolLabel(node.protocol);
-  return (
-    <div className="relative mb-5 pl-10">
-      <div className="flex items-center gap-2.5 rounded-xl bg-surface-container-low/40 px-3.5 py-2 text-[13px] text-on-surface-variant">
-        <Icon size={16} className="text-secondary shrink-0" />
-        <span className="font-medium text-ink">{node.name}</span>
-        {label ? <span className="rounded bg-surface-container px-1.5 py-0.5 text-[11px] text-on-surface-variant">{label}</span> : null}
-        {node.start_time ? <span className="ml-auto text-[12px] tabular-nums text-on-surface-variant/70">{node.start_time}</span> : null}
-      </div>
-    </div>
-  );
-}
-
-
-
-/** 站点卡片（活动 / 住宿）。过夜住宿顶部带陶土暖色小标签。 */
+/** 站点卡片（活动 / 住宿 / 交通）。住宿顶部带陶土暖色小标签，交通带鼠尾草绿标签。 */
 function StopCard({
   node,
   completed,
@@ -149,8 +102,13 @@ function StopCard({
             住宿预订
           </span>
         )}
+        {node.type === "transport" && (
+          <span className="mb-3 inline-block rounded-full bg-secondary-container px-3 py-0.5 text-[12px] font-medium text-secondary">
+            交通衔接
+          </span>
+        )}
 
-        {/* 元数据行：距上站描述 / 区域描述 / 建议时长 / 方式 / 预约号 */}
+        {/* 元数据行 */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-card-border pt-3 text-[12px] text-on-surface-variant">
           {distanceHint && (
             <span className="flex items-center gap-1">
@@ -225,10 +183,7 @@ export function RouteTimeline({
         {/* 竖向虚线：精确对齐 left-2 轴心 */}
         <div className="timeline-dotted absolute bottom-0 left-2 top-0 w-px" />
 
-        {itinerary.nodes.map((node, i) =>
-          node.type === "transport" ? (
-            <TransportLink key={i} node={node} />
-          ) : (
+        {itinerary.nodes.map((node, i) => (
             <StopCard
               key={i}
               node={node}
@@ -237,8 +192,7 @@ export function RouteTimeline({
               onToggle={onToggleNode ? () => onToggleNode(nodeKey(node)) : undefined}
               onEdit={onEditNode ? () => onEditNode(i) : undefined}
             />
-          ),
-        )}
+          ))}
 
         {/* 添加节点入口 */}
         <div className="relative pl-10">
