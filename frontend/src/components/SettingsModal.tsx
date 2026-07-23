@@ -95,7 +95,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               }`}
             >
               <Sliders size={16} className="shrink-0" />
-              <span>旅行偏好</span>
+              <span>偏好</span>
             </button>
             <button
               onClick={() => setActiveTab("appearance")}
@@ -117,7 +117,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               }`}
             >
               <HardDrive size={16} className="shrink-0" />
-              <span>数据与存储</span>
+              <span>数据</span>
             </button>
             <button
               onClick={() => setActiveTab("system")}
@@ -128,7 +128,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               }`}
             >
               <Cpu size={16} className="shrink-0" />
-              <span>系统与地图</span>
+              <span>系统</span>
             </button>
           </div>
 
@@ -247,7 +247,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
                     <button
                       onClick={handleExportJSON}
-                      className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-primary/40 bg-primary-container/30 px-4 py-2 text-[13px] font-medium text-primary hover:bg-primary-container/60 transition-colors"
+                      className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-primary bg-primary-container/30 px-4 py-2 text-[13px] font-medium text-primary hover:bg-primary-container/60 transition-colors"
                     >
                       <Download size={15} className="shrink-0" />
                       <span>导出路线库 (JSON)</span>
@@ -272,7 +272,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     ) : (
                       <button
                         onClick={() => setIsConfirmingResetRoutes(true)}
-                        className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-error/30 bg-error/10 px-4 py-2 text-[13px] font-medium text-error hover:bg-error/20 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-error bg-error/10 px-4 py-2 text-[13px] font-medium text-error hover:bg-error/20 transition-colors"
                       >
                         <Trash2 size={15} className="shrink-0" />
                         <span>重置路线库</span>
