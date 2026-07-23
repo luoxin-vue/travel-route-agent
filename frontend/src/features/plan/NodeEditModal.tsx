@@ -148,6 +148,7 @@ export function NodeEditModal({
           </div>
 
           {/* 城市区域 & 建议游玩时长 */}
+          {type !== "transport" && (
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-[12px] font-medium text-on-surface-variant">
@@ -180,6 +181,7 @@ export function NodeEditModal({
               </div>
             </div>
           </div>
+          )}
 
 
           {/* 天数与时间 */}
@@ -269,6 +271,7 @@ export function NodeEditModal({
 
 
           {/* 备注说明 */}
+          {type !== "transport" && (
           <div>
             <label className="mb-1 block text-[13px] font-medium text-ink">备注与游玩建议</label>
             <div className="relative flex items-start">
@@ -282,8 +285,10 @@ export function NodeEditModal({
               />
             </div>
           </div>
+          )}
 
           {/* 图片 URL */}
+          {type !== "transport" && (
           <div>
             <label className="mb-1 block text-[13px] font-medium text-ink">封面图片链接</label>
             <div className="relative flex items-center">
@@ -297,6 +302,7 @@ export function NodeEditModal({
               />
             </div>
           </div>
+          )}
 
           {/* 底部操作控制线 */}
           <div className="mt-6 flex items-center justify-between border-t border-card-border pt-4">
