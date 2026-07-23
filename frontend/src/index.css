@@ -48,7 +48,7 @@
   --color-outline-variant: rgba(58, 51, 44, 0.14); /* 次要边框/装饰 — 最淡（深色滚动条有独立硬编码） */
   --color-primary: #E08866;
   --color-primary-container: #4A1F12;
-  --color-on-primary: #A8A39A; /* 深色模式统一使用底部 tab 未激活色，与 on-surface-variant 一致 */
+  --color-on-primary: #F5F3ED; /* 有背景色按钮保持暖白，确保对比度 */
   --color-secondary: #7AB8B0;
   --color-secondary-container: #1F3633;
   --color-error: #F87171;
