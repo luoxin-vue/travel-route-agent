@@ -40,7 +40,7 @@
   --color-surface-container: #2A2520;
   --color-surface-container-high: #322C26;
   --color-surface-container-highest: #3A332C;
-  --color-on-surface: #F5F3ED;
+  --color-on-surface: #A8A39A;
   --color-on-surface-variant: #A8A39A;
   /* 深色模式边框/outline：深褐基底 (#3A332C) 暖色分级，替代冷白微光 */
   --color-card-border: rgba(58, 51, 44, 0.30);     /* 卡片/按钮/输入框外框 — 可见但不抢 */
@@ -48,11 +48,11 @@
   --color-outline-variant: rgba(58, 51, 44, 0.14); /* 次要边框/装饰 — 最淡（深色滚动条有独立硬编码） */
   --color-primary: #E08866;
   --color-primary-container: #4A1F12;
-  --color-on-primary: #F5F3ED; /* 深色模式暖白替代纯白，与 text-ink 一致 */
+  --color-on-primary: #A8A39A; /* 深色模式统一使用底部 tab 未激活色，与 on-surface-variant 一致 */
   --color-secondary: #7AB8B0;
   --color-secondary-container: #1F3633;
   --color-error: #F87171;
-  --color-ink: #F5F3ED;
+  --color-ink: #A8A39A;
   --color-teal: #7AB8B0;
 
   color-scheme: dark;
