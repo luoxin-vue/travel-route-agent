@@ -82,13 +82,11 @@ function StopCard({
 
   return (
     <div className="relative mb-6 pl-10">
-      {/* 节点圆点：完成=鼠尾草绿勾，过夜=陶土暖色，普通=轻柔环，精确对齐 left-2 轴心 */}
+      {/* 节点圆点：完成=鼠尾草绿勾，未完成=轻柔环，精确对齐 left-2 轴心 */}
       <span
         className={`absolute left-2 top-3.5 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full transition-all ${
           completed
             ? "bg-secondary text-[#F5F3ED] ring-4 ring-surface"
-            : overnight
-            ? "bg-primary text-on-surface-variant ring-4 ring-surface"
             : "border-2 border-on-surface-variant bg-surface ring-4 ring-surface"
         }`}
       >
